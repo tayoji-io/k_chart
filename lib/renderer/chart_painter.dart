@@ -35,6 +35,7 @@ class ChartPainter extends BaseChartPainter {
   static get maxScrollX => BaseChartPainter.maxScrollX;
   late BaseChartRenderer mMainRenderer;
   BaseChartRenderer? mVolRenderer, mSecondaryRenderer;
+
   StreamSink<InfoWindowEntity?>? sink;
   Color? upColor, dnColor;
   Color? ma5Color, ma10Color, ma30Color;
@@ -121,10 +122,13 @@ class ChartPainter extends BaseChartPainter {
       verticalTextAlignment,
       maDayList,
     );
+    print("mVolRect ----- $mVolRect");
+
     if (mVolRect != null) {
       mVolRenderer = VolRenderer(mVolRect!, mVolMaxValue, mVolMinValue,
           mChildPadding, fixedLength, this.chartStyle, this.chartColors);
     }
+    print("mSecondaryRect ----- $mSecondaryRect");
     if (mSecondaryRect != null) {
       mSecondaryRenderer = SecondaryRenderer(
           mSecondaryRect!,
