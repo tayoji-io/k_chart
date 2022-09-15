@@ -1,7 +1,6 @@
 import 'dart:async' show StreamSink;
 
 import 'package:flutter/material.dart';
-import 'package:k_chart/k_chart_widget.dart';
 import 'package:k_chart/utils/number_util.dart';
 
 import '../entity/info_window_entity.dart';
@@ -50,7 +49,6 @@ class ChartPainter extends BaseChartPainter {
   final bool hideGrid;
   final bool showNowPrice;
   final VerticalTextAlignment verticalTextAlignment;
-  List<SecondaryState> secondarys = [SecondaryState.MACD, SecondaryState.KDJ];
   List<BaseChartRenderer> mSecondaryRenderers = [];
 
   ChartPainter(
@@ -68,9 +66,8 @@ class ChartPainter extends BaseChartPainter {
     isOnTap,
     isTapShowInfoDialog,
     required this.verticalTextAlignment,
-    mainState,
-    volHidden,
-    secondaryState,
+    mainIndicators,
+    secondaryIndicators,
     this.sink,
     bool isLine = false,
     this.hideGrid = false,
@@ -85,9 +82,8 @@ class ChartPainter extends BaseChartPainter {
             isOnTap: isOnTap,
             isTapShowInfoDialog: isTapShowInfoDialog,
             selectX: selectX,
-            mainState: mainState,
-            volHidden: volHidden,
-            secondaryState: secondaryState,
+            mainIndicators: mainIndicators,
+            secondaryIndicators: secondaryIndicators,
             xFrontPadding: xFrontPadding,
             isLine: isLine) {
     selectPointPaint = Paint()
@@ -116,7 +112,7 @@ class ChartPainter extends BaseChartPainter {
       mMainMaxValue,
       mMainMinValue,
       mTopPadding,
-      mainState,
+      mainIndicators,
       isLine,
       fixedLength,
       this.chartStyle,
@@ -131,16 +127,17 @@ class ChartPainter extends BaseChartPainter {
           mChildPadding, fixedLength, this.chartStyle, this.chartColors);
     }
 
-    if (mSecondaryRect != null) {
-      mSecondaryRenderer = SecondaryRenderer(
-          mSecondaryRect!,
-          mSecondaryMaxValue,
-          mSecondaryMinValue,
+    for (var i = 0; i < secondaryIndicators.length; i++) {
+      mSecondaryRenderers.add(SecondaryRenderer(
+          mSecondaryRects[i],
+          mSecondaryMaxValues[i],
+          mSecondaryMinValues[i],
           mChildPadding,
           secondaryState,
           fixedLength,
           chartStyle,
-          chartColors);
+          chartColors,
+          0));
     }
   }
 

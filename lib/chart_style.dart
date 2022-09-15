@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show Color;
+import 'package:flutter/material.dart' show Color, Colors;
 
 class ChartColors {
   List<Color> bgColor = [Color(0xff18191d), Color(0xff18191d)];
@@ -53,6 +53,15 @@ class ChartColors {
   //当前显示内最大和最小值的颜色
   Color maxColor = Color(0xffffffff);
   Color minColor = Color(0xffffffff);
+
+  List<Color> plotColors = [
+    Color(0xffC9B885),
+    Color(0xff6CB0A6),
+    Color(0xff9979C6),
+    Color(0xff4729AE),
+    Colors.blue,
+    Colors.brown
+  ];
 
   Color getMAColor(int index) {
     switch (index % 3) {

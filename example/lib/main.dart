@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:example/technicalindicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_qjs/flutter_qjs.dart';
 import 'package:http/http.dart' as http;
 import 'package:k_chart/chart_style.dart';
 import 'package:k_chart/chart_translations.dart';
@@ -68,6 +70,100 @@ class _MyHomePageState extends State<MyHomePage> {
           .toList();
       initDepth(bids, asks);
     });
+  }
+
+  test() async {
+    final engine = IsolateQjs(
+      stackSize: 1024 * 1024, // change stack size here.
+      moduleHandler: (a) async {
+        return kdj;
+      },
+    );
+
+    var data = [
+      {
+        "id": 1612540800,
+        "open": 37951.81,
+        "close": 40849.89,
+        "low": 37241.37,
+        "high": 40850.0,
+        "amount": 38216.85693345002,
+        "vol": 1.4949126247865715E9,
+        "count": 1356005
+      },
+      {
+        "id": 1612454400,
+        "open": 36560.56,
+        "close": 37952.37,
+        "low": 36398.52,
+        "high": 38256.95,
+        "amount": 27665.497973066584,
+        "vol": 1.0340455381208371E9,
+        "count": 1121676
+      },
+      {
+        "id": 1612368000,
+        "open": 36844.29,
+        "close": 36564.58,
+        "low": 36161.18,
+        "high": 38696.38,
+        "amount": 41350.56167293887,
+        "vol": 1.54849135342769E9,
+        "count": 1355672
+      },
+      {
+        "id": 1612281600,
+        "open": 34719.71,
+        "close": 36847.6,
+        "low": 34573.02,
+        "high": 36920.0,
+        "amount": 30025.84584606207,
+        "vol": 1.0783941069971442E9,
+        "count": 993521
+      },
+      {
+        "id": 1612195200,
+        "open": 33156.56,
+        "close": 34719.71,
+        "low": 33144.0,
+        "high": 35650.0,
+        "amount": 30005.602678376024,
+        "vol": 1.0296114121199853E9,
+        "count": 995684
+      },
+      {
+        "id": 1612108800,
+        "open": 32853.37,
+        "close": 33156.65,
+        "low": 32168.08,
+        "high": 34678.0,
+        "amount": 38156.91552972625,
+        "vol": 1.278421387426902E9,
+        "count": 1328802
+      }
+    ];
+    try {
+      final func = await engine.evaluate('''
+import("hello").then(({default: greet}) => greet.calcTechnicalIndicator(${json.encode(data)},{
+  params:[3,1,2]
+}))
+''');
+      print(func.runtimeType);
+
+      final func1 = await engine.evaluate('''
+import("hello").then(({default: greet}) => greet.plots)
+''');
+      print(func1.runtimeType);
+      // final a = await (func as IsolateFunction).invoke([
+      //   data,
+      // ]);
+      // print(a);
+      // func.free();
+
+      // print(a);
+    } catch (e) {
+      print(e);
+    }
   }
 
   void initDepth(List<DepthEntity>? bids, List<DepthEntity>? asks) {
@@ -149,7 +245,10 @@ class _MyHomePageState extends State<MyHomePage> {
     return Wrap(
       alignment: WrapAlignment.spaceEvenly,
       children: <Widget>[
-        button("Time Mode", onPressed: () => isLine = true),
+        button("Time Mode", onPressed: () {
+          isLine = true;
+          test();
+        }),
         button("K Line Mode", onPressed: () => isLine = false),
         button("TrendLine", onPressed: () => _isTrendLine = !_isTrendLine),
         button("Line:MA", onPressed: () => _mainState = MainState.MA),
