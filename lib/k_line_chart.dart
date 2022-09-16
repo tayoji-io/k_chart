@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:k_chart/chart_translations.dart';
+import 'package:k_chart/entity/k_chart_entity.dart';
+import 'package:k_chart/extension/map_ext.dart';
+import 'package:k_chart/technical_indicator/technical_indicator.dart';
 
 import 'chart_style.dart';
-import 'entity/index.dart';
 import 'entity/info_window_entity.dart';
-import 'renderer/chart_painter.dart';
-import 'renderer/main_renderer.dart';
+import 'renderer1/chart_painter.dart';
+import 'renderer1/main_renderer.dart';
 import 'utils/date_format_util.dart';
 
 enum MainState { MA, BOLL, NONE }
@@ -29,11 +31,12 @@ class TimeFormat {
   ];
 }
 
-class KChartWidget extends StatefulWidget {
-  final List<KLineEntity>? datas;
-  final MainState mainState;
+class KLineChart extends StatefulWidget {
+  final List<KChartEntity>? datas;
+  final List<TechnicalIndicator> mainIndicators;
   final bool volHidden;
-  final SecondaryState secondaryState;
+  final List<TechnicalIndicator> secondaryIndicators;
+
   final Function()? onSecondaryTap;
   final bool isLine;
   final bool isTapShowInfoDialog; //是否开启单击显示详情数据
@@ -61,14 +64,14 @@ class KChartWidget extends StatefulWidget {
   final bool isTrendLine;
   final double xFrontPadding;
 
-  KChartWidget(
+  KLineChart(
     this.datas,
     this.chartStyle,
     this.chartColors, {
     required this.isTrendLine,
     this.xFrontPadding = 100,
-    this.mainState = MainState.MA,
-    this.secondaryState = SecondaryState.MACD,
+    required this.mainIndicators,
+    required this.secondaryIndicators,
     this.onSecondaryTap,
     this.volHidden = false,
     this.isLine = false,
@@ -94,7 +97,7 @@ class KChartWidget extends StatefulWidget {
   _KChartWidgetState createState() => _KChartWidgetState();
 }
 
-class _KChartWidgetState extends State<KChartWidget>
+class _KChartWidgetState extends State<KLineChart>
     with TickerProviderStateMixin {
   double mScaleX = 1.0, mScrollX = 0.0, mSelectX = 0.0;
   StreamController<InfoWindowEntity?>? mInfoWindowStream;
@@ -155,9 +158,9 @@ class _KChartWidgetState extends State<KChartWidget>
       isLongPass: isLongPress,
       isOnTap: isOnTap,
       isTapShowInfoDialog: widget.isTapShowInfoDialog,
-      mainState: widget.mainState,
+      mainIndicators: widget.mainIndicators,
       volHidden: widget.volHidden,
-      secondaryState: widget.secondaryState,
+      secondaryIndicators: widget.secondaryIndicators,
       isLine: widget.isLine,
       hideGrid: widget.hideGrid,
       showNowPrice: widget.showNowPrice,
@@ -288,7 +291,7 @@ class _KChartWidgetState extends State<KChartWidget>
                 size: Size(double.infinity, double.infinity),
                 painter: _painter,
               ),
-              // if (widget.showInfoDialog) _buildInfoDialog()
+              if (widget.showInfoDialog) _buildInfoDialog()
             ],
           ),
         );
@@ -350,7 +353,7 @@ class _KChartWidgetState extends State<KChartWidget>
   void notifyChanged() => setState(() {});
 
   late List<String> infos;
-  /*
+
   Widget _buildInfoDialog() {
     return StreamBuilder<InfoWindowEntity?>(
         stream: mInfoWindowStream?.stream,
@@ -359,10 +362,10 @@ class _KChartWidgetState extends State<KChartWidget>
               widget.isLine == true ||
               !snapshot.hasData ||
               snapshot.data?.kLineEntity == null) return Container();
-          KLineEntity entity = snapshot.data!.kLineEntity;
-          double upDown = entity.change ?? entity.close - entity.open;
-          double upDownPercent = entity.ratio ?? (upDown / entity.open) * 100;
-          final double? entityAmount = entity.amount;
+          KChartEntity entity = snapshot.data!.kLineEntity;
+          double upDown = entity.close - entity.open;
+          double upDownPercent = (upDown / entity.open) * 100;
+          // final double? entityAmount = entity.amount;
           infos = [
             getDate(entity.time),
             entity.open.toStringAsFixed(widget.fixedLength),
@@ -371,7 +374,7 @@ class _KChartWidgetState extends State<KChartWidget>
             entity.close.toStringAsFixed(widget.fixedLength),
             "${upDown > 0 ? "+" : ""}${upDown.toStringAsFixed(widget.fixedLength)}",
             "${upDownPercent > 0 ? "+" : ''}${upDownPercent.toStringAsFixed(2)}%",
-            if (entityAmount != null) entityAmount.toInt().toString()
+            // if (entityAmount != null) entityAmount.toInt().toString()
           ];
           final dialogPadding = 4.0;
           final dialogWidth = mWidth / 3;
@@ -405,7 +408,6 @@ class _KChartWidgetState extends State<KChartWidget>
           );
         });
   }
-  */
 
   Widget _buildItem(String info, String infoName) {
     Color color = widget.chartColors.infoWindowNormalColor;

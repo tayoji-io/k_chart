@@ -72,12 +72,21 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
   void drawText(Canvas canvas, KChartEntity data, double x) {
     if (isLine == true) return;
 
+    var colorIndex = -1;
     TextSpan? span;
     if (data.mainPlot.length > 0) {
       span = TextSpan(
           children: data.mainPlot.map((e) {
         return TextSpan(children: [
-          ...e.map((e) => TextSpan(text: "${e.plot.title}")).toList(),
+          // TextSpan(
+          //     text: "",
+          //     style: getTextStyle(this.chartColors.plotColors[colorIndex])),
+          ...e.map((e) {
+            colorIndex += 1;
+            return TextSpan(
+                text: "${e.plot.title} ${format(e.value)}   ",
+                style: getTextStyle(this.chartColors.plotColors[colorIndex]));
+          }).toList(),
           TextSpan(text: '\n')
         ]);
       }).toList());
@@ -104,10 +113,10 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
       for (var j = 0; j < curMainPlots.length; j++) {
         final cplot = curMainPlots[j];
         final lplot = lastMainPlots[j];
-        if (cplot is IndicatorLinePlot) {
-          colorIndex += 1;
+        if (cplot.plot is IndicatorLinePlot) {
           drawLine(lplot.value, cplot.value, canvas, lastX, curX,
               chartColors.plotColors[colorIndex]);
+          colorIndex += 1;
         } else {}
       }
     }

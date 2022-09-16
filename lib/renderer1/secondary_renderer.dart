@@ -1,14 +1,14 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:k_chart/entity/k_chart_entity.dart';
+import 'package:k_chart/technical_indicator/indicator_plot.dart';
 
-import '../entity/macd_entity.dart';
-import '../k_chart_widget.dart' show SecondaryState;
 import 'base_chart_renderer.dart';
 
-class SecondaryRenderer extends BaseChartRenderer<MACDEntity> {
+class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
   late double mMACDWidth;
-  SecondaryState state;
+
   final ChartStyle chartStyle;
   final ChartColors chartColors;
   final int plotIndex;
@@ -18,7 +18,6 @@ class SecondaryRenderer extends BaseChartRenderer<MACDEntity> {
       double maxValue,
       double minValue,
       double topPadding,
-      this.state,
       int fixedLength,
       this.chartStyle,
       this.chartColors,
@@ -35,129 +34,72 @@ class SecondaryRenderer extends BaseChartRenderer<MACDEntity> {
   }
 
   @override
-  void drawChart(MACDEntity lastPoint, MACDEntity curPoint, double lastX,
+  void drawChart(KChartEntity lastPoint, KChartEntity curPoint, double lastX,
       double curX, Size size, Canvas canvas) {
-    switch (state) {
-      case SecondaryState.MACD:
-        drawMACD(curPoint, canvas, curX, lastPoint, lastX);
-        break;
-      case SecondaryState.KDJ:
-        drawLine(lastPoint.k, curPoint.k, canvas, lastX, curX,
-            this.chartColors.kColor);
-        drawLine(lastPoint.d, curPoint.d, canvas, lastX, curX,
-            this.chartColors.dColor);
-        drawLine(lastPoint.j, curPoint.j, canvas, lastX, curX,
-            this.chartColors.jColor);
-        break;
-      case SecondaryState.RSI:
-        drawLine(lastPoint.rsi, curPoint.rsi, canvas, lastX, curX,
-            this.chartColors.rsiColor);
-        break;
-      case SecondaryState.WR:
-        drawLine(lastPoint.r, curPoint.r, canvas, lastX, curX,
-            this.chartColors.rsiColor);
-        break;
-      case SecondaryState.CCI:
-        drawLine(lastPoint.cci, curPoint.cci, canvas, lastX, curX,
-            this.chartColors.rsiColor);
-        break;
-      default:
-        break;
-    }
-  }
-
-  void drawMACD(MACDEntity curPoint, Canvas canvas, double curX,
-      MACDEntity lastPoint, double lastX) {
-    final macd = curPoint.macd ?? 0;
-    double macdY = getY(macd);
-    double r = mMACDWidth / 2;
-    double zeroy = getY(0);
-    if (macd > 0) {
-      canvas.drawRect(Rect.fromLTRB(curX - r, macdY, curX + r, zeroy),
-          chartPaint..color = this.chartColors.upColor);
-    } else {
-      canvas.drawRect(Rect.fromLTRB(curX - r, zeroy, curX + r, macdY),
-          chartPaint..color = this.chartColors.dnColor);
-    }
-    if (lastPoint.dif != 0) {
-      drawLine(lastPoint.dif, curPoint.dif, canvas, lastX, curX,
-          this.chartColors.difColor);
-    }
-    if (lastPoint.dea != 0) {
-      drawLine(lastPoint.dea, curPoint.dea, canvas, lastX, curX,
-          this.chartColors.deaColor);
-    }
+    try {
+      final curPlot = curPoint.secondaryPlot[plotIndex];
+      final lastPlot = lastPoint.secondaryPlot[plotIndex];
+      for (var i = 0; i < curPlot.length; i++) {
+        final cur = curPlot[i];
+        final last = lastPlot[i];
+        final plot = cur.plot;
+        if (plot is IndicatorLinePlot) {
+          drawLine(last.value, cur.value, canvas, lastX, curX,
+              this.chartColors.plotColors[i]);
+        } else if (plot is IndicatorBarPlot) {
+          final cValue = cur.value;
+          final lValue = last.value;
+          final baseValue = plot.baseValue.toDouble();
+          if (cValue == null) {
+            return;
+          }
+          double macdY = getY(cValue);
+          double r = mMACDWidth / 2;
+          double zeroy = getY(baseValue);
+          final color = plot.indicatorColor?.calculate(
+              last: lastPoint,
+              cur: curPoint,
+              colors: chartColors,
+              lValue: lValue,
+              cValue: cValue);
+          final isStroke = plot.indicatorBarStroke?.calculate(
+                  last: lastPoint,
+                  cur: curPoint,
+                  lValue: lValue,
+                  cValue: cValue) ??
+              false;
+          if (cValue > baseValue) {
+            canvas.drawRect(
+                Rect.fromLTRB(curX - r, macdY, curX + r, zeroy),
+                chartPaint
+                  ..color = color ?? this.chartColors.upColor
+                  ..style =
+                      isStroke ? PaintingStyle.stroke : PaintingStyle.fill);
+          } else {
+            canvas.drawRect(
+                Rect.fromLTRB(curX - r, zeroy, curX + r, macdY),
+                chartPaint
+                  ..style = isStroke ? PaintingStyle.stroke : PaintingStyle.fill
+                  ..color = color ?? this.chartColors.upColor);
+          }
+        }
+      }
+    } catch (e) {}
   }
 
   @override
-  void drawText(Canvas canvas, MACDEntity data, double x) {
-    List<TextSpan>? children;
-    switch (state) {
-      case SecondaryState.MACD:
-        children = [
-          TextSpan(
-              text: "MACD(12,26,9)    ",
-              style: getTextStyle(this.chartColors.defaultTextColor)),
-          if (data.macd != 0)
-            TextSpan(
-                text: "MACD:${format(data.macd)}    ",
-                style: getTextStyle(this.chartColors.macdColor)),
-          if (data.dif != 0)
-            TextSpan(
-                text: "DIF:${format(data.dif)}    ",
-                style: getTextStyle(this.chartColors.difColor)),
-          if (data.dea != 0)
-            TextSpan(
-                text: "DEA:${format(data.dea)}    ",
-                style: getTextStyle(this.chartColors.deaColor)),
-        ];
-        break;
-      case SecondaryState.KDJ:
-        children = [
-          TextSpan(
-              text: "KDJ(9,1,3)    ",
-              style: getTextStyle(this.chartColors.defaultTextColor)),
-          if (data.macd != 0)
-            TextSpan(
-                text: "K:${format(data.k)}    ",
-                style: getTextStyle(this.chartColors.kColor)),
-          if (data.dif != 0)
-            TextSpan(
-                text: "D:${format(data.d)}    ",
-                style: getTextStyle(this.chartColors.dColor)),
-          if (data.dea != 0)
-            TextSpan(
-                text: "J:${format(data.j)}    ",
-                style: getTextStyle(this.chartColors.jColor)),
-        ];
-        break;
-      case SecondaryState.RSI:
-        children = [
-          TextSpan(
-              text: "RSI(14):${format(data.rsi)}    ",
-              style: getTextStyle(this.chartColors.rsiColor)),
-        ];
-        break;
-      case SecondaryState.WR:
-        children = [
-          TextSpan(
-              text: "WR(14):${format(data.r)}    ",
-              style: getTextStyle(this.chartColors.rsiColor)),
-        ];
-        break;
-      case SecondaryState.CCI:
-        children = [
-          TextSpan(
-              text: "CCI(14):${format(data.cci)}    ",
-              style: getTextStyle(this.chartColors.rsiColor)),
-        ];
-        break;
-      default:
-        break;
+  void drawText(Canvas canvas, KChartEntity data, double x) {
+    List<TextSpan> children = [];
+    final plots = data.secondaryPlot[plotIndex];
+    for (var i = 0; i < plots.length; i++) {
+      final plot = plots[i];
+
+      children.add(TextSpan(
+          text: "${plot.plot.title} ${format(plot.value)}   ",
+          style: getTextStyle(this.chartColors.plotColors[i])));
     }
     TextPainter tp = TextPainter(
-        text: TextSpan(children: children ?? []),
-        textDirection: TextDirection.ltr);
+        text: TextSpan(children: children), textDirection: TextDirection.ltr);
     tp.layout();
     tp.paint(canvas, Offset(x, chartRect.top - topPadding));
   }

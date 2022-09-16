@@ -1,9 +1,9 @@
 import 'dart:async' show StreamSink;
 
 import 'package:flutter/material.dart';
-import 'package:k_chart/k_chart_widget.dart';
 import 'package:k_chart/utils/number_util.dart';
 
+import '/k_chart_widget.dart';
 import '../entity/info_window_entity.dart';
 import '../entity/k_line_entity.dart';
 import '../utils/date_format_util.dart';
@@ -326,7 +326,7 @@ class ChartPainter extends BaseChartPainter {
 
     dateTp.paint(canvas, Offset(x - textWidth / 2, y));
     //长按显示这条数据详情
-    sink?.add(InfoWindowEntity(point, isLeft: isLeft));
+    // sink?.add(InfoWindowEntity(point, isLeft: isLeft));
   }
 
   @override

@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_qjs/flutter_qjs.dart';
 import 'package:http/http.dart' as http;
-import 'package:k_chart/chart_style.dart';
 import 'package:k_chart/chart_translations.dart';
+import 'package:k_chart/entity/k_chart_entity.dart';
 import 'package:k_chart/flutter_k_chart.dart';
-import 'package:k_chart/k_chart_widget.dart';
+import 'package:k_chart/technical_indicator/indicator_plot.dart';
 
 void main() => runApp(MyApp());
 
@@ -35,12 +35,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<KLineEntity>? datas;
+  List<KlineData>? datas;
+  List<TechnicalIndicator> mainIndicators = [];
+  List<TechnicalIndicator> secondaryIndicators = [];
   bool showLoading = true;
-  MainState _mainState = MainState.MA;
+  var parseTime = 0;
+
   bool _volHidden = false;
-  SecondaryState _secondaryState = SecondaryState.MACD;
-  bool isLine = true;
+
+  bool isLine = false;
   bool isChinese = true;
   bool _hideGrid = false;
   bool _showNowPrice = true;
@@ -50,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _priceLeft = true;
   VerticalTextAlignment _verticalTextAlignment = VerticalTextAlignment.left;
 
-  ChartStyle chartStyle = ChartStyle();
+  ChartStyle chartStyle = ChartStyle()..secondaryHeight = 50;
   ChartColors chartColors = ChartColors();
 
   @override
@@ -73,97 +76,42 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   test() async {
-    final engine = IsolateQjs(
-      stackSize: 1024 * 1024, // change stack size here.
-      moduleHandler: (a) async {
-        return kdj;
-      },
-    );
+    showLoading = false;
 
-    var data = [
-      {
-        "id": 1612540800,
-        "open": 37951.81,
-        "close": 40849.89,
-        "low": 37241.37,
-        "high": 40850.0,
-        "amount": 38216.85693345002,
-        "vol": 1.4949126247865715E9,
-        "count": 1356005
-      },
-      {
-        "id": 1612454400,
-        "open": 36560.56,
-        "close": 37952.37,
-        "low": 36398.52,
-        "high": 38256.95,
-        "amount": 27665.497973066584,
-        "vol": 1.0340455381208371E9,
-        "count": 1121676
-      },
-      {
-        "id": 1612368000,
-        "open": 36844.29,
-        "close": 36564.58,
-        "low": 36161.18,
-        "high": 38696.38,
-        "amount": 41350.56167293887,
-        "vol": 1.54849135342769E9,
-        "count": 1355672
-      },
-      {
-        "id": 1612281600,
-        "open": 34719.71,
-        "close": 36847.6,
-        "low": 34573.02,
-        "high": 36920.0,
-        "amount": 30025.84584606207,
-        "vol": 1.0783941069971442E9,
-        "count": 993521
-      },
-      {
-        "id": 1612195200,
-        "open": 33156.56,
-        "close": 34719.71,
-        "low": 33144.0,
-        "high": 35650.0,
-        "amount": 30005.602678376024,
-        "vol": 1.0296114121199853E9,
-        "count": 995684
-      },
-      {
-        "id": 1612108800,
-        "open": 32853.37,
-        "close": 33156.65,
-        "low": 32168.08,
-        "high": 34678.0,
-        "amount": 38156.91552972625,
-        "vol": 1.278421387426902E9,
-        "count": 1328802
-      }
-    ];
-    try {
-      final func = await engine.evaluate('''
-import("hello").then(({default: greet}) => greet.calcTechnicalIndicator(${json.encode(data)},{
-  params:[3,1,2]
-}))
-''');
-      print(func.runtimeType);
+    final start = DateTime.now();
+    if (datas == null || datas!.length == 0) {
+      final data1 = await rootBundle.loadString('assets/chatData.json');
+      var data = json.decode(data1) as List;
 
-      final func1 = await engine.evaluate('''
-import("hello").then(({default: greet}) => greet.plots)
-''');
-      print(func1.runtimeType);
-      // final a = await (func as IsolateFunction).invoke([
-      //   data,
-      // ]);
-      // print(a);
-      // func.free();
-
-      // print(a);
-    } catch (e) {
-      print(e);
+      datas = data
+          .map((e) => KlineData.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
+
+    final List<TechnicalIndicator> mains = [
+      KJsonIndicator.create(js: ma),
+    ];
+
+    final List<TechnicalIndicator> secondarys = [
+      KJsonIndicator.create(js: kdj),
+      KJsonIndicator.create(js: macd),
+      KJsonIndicator.create(js: vol),
+    ];
+
+    final jsonTime = DateTime.now();
+
+    await calcTechnicalIndicator(datas!, mains, secondarys);
+    secondaryIndicators = secondarys;
+    mainIndicators = mains;
+    final parseTimea = DateTime.now();
+    parseTime =
+        parseTimea.millisecondsSinceEpoch - jsonTime.millisecondsSinceEpoch;
+    print(
+        "parseTime ${parseTimea.millisecondsSinceEpoch - jsonTime.millisecondsSinceEpoch}");
+    print(
+        "parseTime ${jsonTime.millisecondsSinceEpoch - start.millisecondsSinceEpoch}");
+
+    setState(() {});
   }
 
   void initDepth(List<DepthEntity>? bids, List<DepthEntity>? asks) {
@@ -197,9 +145,12 @@ import("hello").then(({default: greet}) => greet.plots)
       children: <Widget>[
         Stack(children: <Widget>[
           Container(
-            height: 450,
+            height: 300 +
+                secondaryIndicators.length *
+                    (chartStyle.secondaryHeight! + chartStyle.childPadding),
             width: double.infinity,
-            child: KChartWidget(
+            padding: EdgeInsets.all(10),
+            child: KLineChart(
               datas,
               chartStyle,
               chartColors,
@@ -208,19 +159,18 @@ import("hello").then(({default: greet}) => greet.plots)
                 print('Secondary Tap');
               },
               isTrendLine: _isTrendLine,
-              mainState: _mainState,
               volHidden: _volHidden,
-              secondaryState: _secondaryState,
               fixedLength: 2,
               timeFormat: TimeFormat.YEAR_MONTH_DAY,
               translations: kChartTranslations,
               showNowPrice: _showNowPrice,
-              //`isChinese` is Deprecated, Use `translations` instead.
               isChinese: isChinese,
               hideGrid: _hideGrid,
               isTapShowInfoDialog: true,
               verticalTextAlignment: _verticalTextAlignment,
               maDayList: [1, 100, 1000],
+              mainIndicators: mainIndicators,
+              secondaryIndicators: secondaryIndicators,
             ),
           ),
           if (showLoading)
@@ -231,6 +181,7 @@ import("hello").then(({default: greet}) => greet.plots)
                 child: const CircularProgressIndicator()),
         ]),
         buildButtons(),
+        Container(child: Text('parseTime $parseTime')),
         if (_bids != null && _asks != null)
           Container(
             height: 230,
@@ -246,26 +197,11 @@ import("hello").then(({default: greet}) => greet.plots)
       alignment: WrapAlignment.spaceEvenly,
       children: <Widget>[
         button("Time Mode", onPressed: () {
-          isLine = true;
+          // isLine = true;
           test();
         }),
         button("K Line Mode", onPressed: () => isLine = false),
         button("TrendLine", onPressed: () => _isTrendLine = !_isTrendLine),
-        button("Line:MA", onPressed: () => _mainState = MainState.MA),
-        button("Line:BOLL", onPressed: () => _mainState = MainState.BOLL),
-        button("Hide Line", onPressed: () => _mainState = MainState.NONE),
-        button("Secondary Chart:MACD",
-            onPressed: () => _secondaryState = SecondaryState.MACD),
-        button("Secondary Chart:KDJ",
-            onPressed: () => _secondaryState = SecondaryState.KDJ),
-        button("Secondary Chart:RSI",
-            onPressed: () => _secondaryState = SecondaryState.RSI),
-        button("Secondary Chart:WR",
-            onPressed: () => _secondaryState = SecondaryState.WR),
-        button("Secondary Chart:CCI",
-            onPressed: () => _secondaryState = SecondaryState.CCI),
-        button("Secondary Chart:Hide",
-            onPressed: () => _secondaryState = SecondaryState.NONE),
         button(_volHidden ? "Show Vol" : "Hide Vol",
             onPressed: () => _volHidden = !_volHidden),
         button("Change Language", onPressed: () => isChinese = !isChinese),
@@ -307,7 +243,6 @@ import("hello").then(({default: greet}) => greet.plots)
       onPressed: () {
         if (onPressed != null) {
           onPressed();
-          setState(() {});
         }
       },
       child: Text(text),
@@ -329,9 +264,7 @@ import("hello").then(({default: greet}) => greet.plots)
      */
     final Future<String> future = getChatDataFromJson();
     //final Future<String> future = getChatDataFromJson();
-    future.then((String result) {
-      solveChatData(result);
-    }).catchError((_) {
+    future.then((String result) {}).catchError((_) {
       showLoading = false;
       setState(() {});
       print('### datas error $_');
@@ -356,18 +289,108 @@ import("hello").then(({default: greet}) => greet.plots)
   Future<String> getChatDataFromJson() async {
     return rootBundle.loadString('assets/chatData.json');
   }
+}
 
-  void solveChatData(String result) {
-    final Map parseJson = json.decode(result) as Map<dynamic, dynamic>;
-    final list = parseJson['data'] as List<dynamic>;
-    datas = list
-        .map((item) => KLineEntity.fromJson(item as Map<String, dynamic>))
-        .toList()
-        .reversed
-        .toList()
-        .cast<KLineEntity>();
-    DataUtil.calculate(datas!);
-    showLoading = false;
-    setState(() {});
+class KlineData extends KChartEntity {
+  KlineData.fromJson(Map<String, dynamic> data) {
+    this.open = (data['open'] as num).toDouble();
+    this.close = (data['close'] as num).toDouble();
+    this.low = (data['low'] as num).toDouble();
+    this.high = (data['high'] as num).toDouble();
+    this.vol = (data['vol'] as num).toDouble();
+    this.time = (data['id'] as num).toInt() * 1000;
   }
 }
+
+class KJsonIndicator extends TechnicalIndicator {
+  final String js;
+  KJsonIndicator.create({
+    required this.js,
+  }) : super.create(name: '', shortName: '', calcParams: [], plots: []);
+
+  @override
+  Future<List<List<IndicatorPlotPoint>>> calcTechnicalIndicator(
+      List<KChartEntity> dataList) async {
+    try {
+      final engine = IsolateQjs(
+        stackSize: 1024 * 1024, // change stack size here.
+        moduleHandler: (a) async {
+          return js;
+        },
+      );
+      name = await engine.evaluate('''
+import("hello").then(({default: greet}) => greet.name)
+''');
+      shortName = await engine.evaluate('''
+import("hello").then(({default: greet}) => greet.shortName)
+''');
+      calcParams = ((await engine.evaluate('''
+import("hello").then(({default: greet}) => greet.calcParams)
+''')) as List).map((e) => e as num).toList();
+
+      plots = ((await engine.evaluate('''
+import("hello").then(({default: greet}) => greet.plots)
+''')) as List)
+          .map((e) {
+            final d = e as Map;
+            final type = d['type'] as String;
+            final key = e['key'];
+            final title = e['title'];
+            final color = e['color'];
+            final stroke = e['stroke'];
+
+            switch (type) {
+              case "line":
+                return IndicatorLinePlot.create(key: key, title: title);
+              case "bar":
+                return IndicatorBarPlot.create(
+                    indicatorColor: indicatorColors[color],
+                    indicatorBarStroke: indicatorBarStrokes[stroke],
+                    key: key,
+                    title: title,
+                    baseValue: d["baseValue"] ?? 0);
+              case "circle":
+                return IndicatorCirclePlot.create(
+                  key: key,
+                  title: title,
+                );
+            }
+            return null;
+          })
+          .where((element) => element != null)
+          .map((e) => e!)
+          .toList();
+
+      final points = ((await engine.evaluate('''
+import("hello").then(({default: greet}) => greet.calcTechnicalIndicator(${json.encode(dataList.map((e) => e.toJson()).toList())},{
+  params:${calcParams},
+  plots: ${json.encode(plots.map((e) => e.toJson()).toList())}
+}))
+''')) as List).map((e) {
+        var d = e as Map;
+        return plots.map((e) {
+          final v = d[e.key];
+          if (v != null && v is num) {
+            return IndicatorPlotPoint(plot: e, value: v.toDouble());
+          }
+          return IndicatorPlotPoint(plot: e);
+        }).toList();
+      }).toList();
+
+      return points;
+    } catch (e) {
+      print(e);
+    }
+    return [];
+  }
+}
+
+final Map<num, IndicatorColor> indicatorColors = {
+  0: CurValueZeroIndicatorColor(),
+  1: CurValueCompareIndicatorColor(),
+  2: CurOpenCloseIndicatorColor()
+};
+
+final Map<num, IndicatorBarStroke> indicatorBarStrokes = {
+  0: CLValueBarStroke(),
+};

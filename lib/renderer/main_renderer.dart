@@ -155,7 +155,10 @@ class MainRenderer extends BaseChartRenderer<CandleEntity> {
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       tileMode: TileMode.clamp,
-      colors: [this.chartColors.lineFillColor, this.chartColors.lineFillInsideColor],
+      colors: [
+        this.chartColors.lineFillColor,
+        this.chartColors.lineFillInsideColor
+      ],
     ).createShader(Rect.fromLTRB(
         chartRect.left, chartRect.top, chartRect.right, chartRect.bottom));
     mLineFillPaint..shader = mLineFillShader;

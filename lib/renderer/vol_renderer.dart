@@ -1,7 +1,9 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:k_chart/flutter_k_chart.dart';
+
+import '/entity/volume_entity.dart';
+import '/extension/num_ext.dart';
+import '/utils/number_util.dart';
+import 'base_chart_renderer.dart';
 
 class VolRenderer extends BaseChartRenderer<VolumeEntity> {
   late double mVolWidth;
@@ -11,12 +13,13 @@ class VolRenderer extends BaseChartRenderer<VolumeEntity> {
   VolRenderer(Rect mainRect, double maxValue, double minValue,
       double topPadding, int fixedLength, this.chartStyle, this.chartColors)
       : super(
-            chartRect: mainRect,
-            maxValue: maxValue,
-            minValue: minValue,
-            topPadding: topPadding,
-            fixedLength: fixedLength,
-            gridColor: chartColors.gridColor,) {
+          chartRect: mainRect,
+          maxValue: maxValue,
+          minValue: minValue,
+          topPadding: topPadding,
+          fixedLength: fixedLength,
+          gridColor: chartColors.gridColor,
+        ) {
     mVolWidth = this.chartStyle.volWidth;
   }
 

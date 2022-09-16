@@ -12,6 +12,7 @@ class ChartColors {
   Color upColor = Color(0xff4DAA90);
   Color dnColor = Color(0xffC15466);
   Color volColor = Color(0xff4729AE);
+  Color noChangeColor = Color(0xff60738E);
 
   Color macdColor = Color(0xff4729AE);
   Color difColor = Color(0xffC9B885);
@@ -79,6 +80,8 @@ class ChartStyle {
   double topPadding = 30.0;
 
   double bottomPadding = 20.0;
+
+  double? secondaryHeight;
 
   double childPadding = 12.0;
 

@@ -42,6 +42,16 @@ abstract class BaseChartRenderer<T> {
     if (n == null || n.isNaN) {
       return "0.00";
     } else {
+      if (n > 1000 * 1000 * 100 * 10) {
+        return (n / 1000 / 1000 / 1000).toStringAsFixed(fixedLength) + "B";
+      }
+      if (n > 1000 * 1000 * 10) {
+        return (n / 1000 / 1000).toStringAsFixed(fixedLength) + "M";
+      }
+      if (n > 1000 * 10) {
+        return (n / 1000).toStringAsFixed(fixedLength) + "K";
+      }
+
       return n.toStringAsFixed(fixedLength);
     }
   }
@@ -63,6 +73,8 @@ abstract class BaseChartRenderer<T> {
     //("lasePrice==" + lastPrice.toString() + "==curPrice==" + curPrice.toString());
     double lastY = getY(lastPrice);
     double curY = getY(curPrice);
+
+    // print('$this $curY  ${lastPrice} ${this.maxValue} ${this.minValue}');
     //print("lastX-----==" + lastX.toString() + "==lastY==" + lastY.toString() + "==curX==" + curX.toString() + "==curY==" + curY.toString());
     canvas.drawLine(
         Offset(lastX, lastY), Offset(curX, curY), chartPaint..color = color);

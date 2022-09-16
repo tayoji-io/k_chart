@@ -1,7 +1,7 @@
-import '../entity/k_line_entity.dart';
+import 'package:k_chart/entity/k_chart_entity.dart';
 
 class InfoWindowEntity {
-  KLineEntity kLineEntity;
+  KChartEntity kLineEntity;
   bool isLeft;
 
   InfoWindowEntity(

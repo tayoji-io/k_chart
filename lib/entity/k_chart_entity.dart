@@ -7,9 +7,20 @@ class KChartEntity {
   late double close;
   late double vol;
   late int time;
-  late List<List<IndicatorPlotPoint>> mainPlot;
+  List<List<IndicatorPlotPoint>> mainPlot = [];
 
-  late List<List<IndicatorPlotPoint>> secondaryPlot;
+  List<List<IndicatorPlotPoint>> secondaryPlot = [];
   double? MA5Volume;
   double? MA10Volume;
+
+  Map<String, dynamic> toJson() {
+    return {
+      "open": open,
+      "close": close,
+      "low": low,
+      "high": high,
+      "volume": vol,
+      "time": time
+    };
+  }
 }

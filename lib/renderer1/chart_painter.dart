@@ -1,10 +1,10 @@
 import 'dart:async' show StreamSink;
 
 import 'package:flutter/material.dart';
+import 'package:k_chart/entity/k_chart_entity.dart';
 import 'package:k_chart/utils/number_util.dart';
 
 import '../entity/info_window_entity.dart';
-import '../entity/k_line_entity.dart';
 import '../utils/date_format_util.dart';
 import 'base_chart_painter.dart';
 import 'base_chart_renderer.dart';
@@ -34,7 +34,7 @@ class ChartPainter extends BaseChartPainter {
   final double selectY; //For TrendLine
   static get maxScrollX => BaseChartPainter.maxScrollX;
   late BaseChartRenderer mMainRenderer;
-  BaseChartRenderer? mVolRenderer, mSecondaryRenderer;
+  BaseChartRenderer? mVolRenderer;
 
   StreamSink<InfoWindowEntity?>? sink;
   Color? upColor, dnColor;
@@ -50,31 +50,31 @@ class ChartPainter extends BaseChartPainter {
   final bool showNowPrice;
   final VerticalTextAlignment verticalTextAlignment;
   List<BaseChartRenderer> mSecondaryRenderers = [];
+  final bool volHidden;
 
-  ChartPainter(
-    this.chartStyle,
-    this.chartColors, {
-    required this.lines, //For TrendLine
-    required this.isTrendLine, //For TrendLine
-    required this.selectY, //For TrendLine
-    required datas,
-    required scaleX,
-    required scrollX,
-    required isLongPass,
-    required selectX,
-    required xFrontPadding,
-    isOnTap,
-    isTapShowInfoDialog,
-    required this.verticalTextAlignment,
-    mainIndicators,
-    secondaryIndicators,
-    this.sink,
-    bool isLine = false,
-    this.hideGrid = false,
-    this.showNowPrice = true,
-    this.fixedLength = 2,
-    this.maDayList = const [5, 10, 20],
-  }) : super(chartStyle,
+  ChartPainter(this.chartStyle, this.chartColors,
+      {required this.lines, //For TrendLine
+      required this.isTrendLine, //For TrendLine
+      required this.selectY, //For TrendLine
+      required datas,
+      required scaleX,
+      required scrollX,
+      required isLongPass,
+      required selectX,
+      required xFrontPadding,
+      isOnTap,
+      isTapShowInfoDialog,
+      required this.verticalTextAlignment,
+      mainIndicators,
+      secondaryIndicators,
+      this.sink,
+      bool isLine = false,
+      this.hideGrid = false,
+      this.showNowPrice = true,
+      this.fixedLength = 2,
+      this.maDayList = const [5, 10, 20],
+      this.volHidden = true})
+      : super(chartStyle,
             datas: datas,
             scaleX: scaleX,
             scrollX: scrollX,
@@ -133,11 +133,10 @@ class ChartPainter extends BaseChartPainter {
           mSecondaryMaxValues[i],
           mSecondaryMinValues[i],
           mChildPadding,
-          secondaryState,
           fixedLength,
           chartStyle,
           chartColors,
-          0));
+          i));
     }
   }
 
@@ -161,12 +160,13 @@ class ChartPainter extends BaseChartPainter {
           volRect, mBgPaint..shader = mBgGradient.createShader(volRect));
     }
 
-    if (mSecondaryRect != null) {
-      Rect secondaryRect = Rect.fromLTRB(0, mSecondaryRect!.top - mChildPadding,
-          mSecondaryRect!.width, mSecondaryRect!.bottom);
+    for (var rect in mSecondaryRects) {
+      Rect secondaryRect =
+          Rect.fromLTRB(0, rect.top - mChildPadding, rect.width, rect.bottom);
       canvas.drawRect(secondaryRect,
           mBgPaint..shader = mBgGradient.createShader(secondaryRect));
     }
+
     Rect dateRect =
         Rect.fromLTRB(0, size.height - mBottomPadding, size.width, size.height);
     canvas.drawRect(
@@ -178,7 +178,9 @@ class ChartPainter extends BaseChartPainter {
     if (!hideGrid) {
       mMainRenderer.drawGrid(canvas, mGridRows, mGridColumns);
       mVolRenderer?.drawGrid(canvas, mGridRows, mGridColumns);
-      mSecondaryRenderer?.drawGrid(canvas, mGridRows, mGridColumns);
+      mSecondaryRenderers.forEach((element) {
+        element..drawGrid(canvas, mGridRows, mGridColumns);
+      });
     }
   }
 
@@ -188,16 +190,18 @@ class ChartPainter extends BaseChartPainter {
     canvas.translate(mTranslateX * scaleX, 0.0);
     canvas.scale(scaleX, 1.0);
     for (int i = mStartIndex; datas != null && i <= mStopIndex; i++) {
-      KLineEntity? curPoint = datas?[i];
+      KChartEntity? curPoint = datas?[i];
       if (curPoint == null) continue;
-      KLineEntity lastPoint = i == 0 ? curPoint : datas![i - 1];
+      KChartEntity lastPoint = i == 0 ? curPoint : datas![i - 1];
       double curX = getX(i);
       double lastX = i == 0 ? curX : getX(i - 1);
 
       mMainRenderer.drawChart(lastPoint, curPoint, lastX, curX, size, canvas);
       mVolRenderer?.drawChart(lastPoint, curPoint, lastX, curX, size, canvas);
-      mSecondaryRenderer?.drawChart(
-          lastPoint, curPoint, lastX, curX, size, canvas);
+
+      mSecondaryRenderers.forEach((element) {
+        element.drawChart(lastPoint, curPoint, lastX, curX, size, canvas);
+      });
     }
 
     if ((isLongPress == true || (isTapShowInfoDialog && isOnTap)) &&
@@ -215,7 +219,9 @@ class ChartPainter extends BaseChartPainter {
       mMainRenderer.drawVerticalText(canvas, textStyle, mGridRows);
     }
     mVolRenderer?.drawVerticalText(canvas, textStyle, mGridRows);
-    mSecondaryRenderer?.drawVerticalText(canvas, textStyle, mGridRows);
+    mSecondaryRenderers.forEach((element) {
+      element.drawVerticalText(canvas, textStyle, mGridRows);
+    });
   }
 
   @override
@@ -259,7 +265,7 @@ class ChartPainter extends BaseChartPainter {
   @override
   void drawCrossLineText(Canvas canvas, Size size) {
     var index = calculateSelectedX(selectX);
-    KLineEntity point = getItem(index);
+    KChartEntity point = getItem(index);
 
     TextPainter tp = getTextPainter(point.close, chartColors.crossTextColor);
     double textHeight = tp.height;
@@ -327,7 +333,7 @@ class ChartPainter extends BaseChartPainter {
   }
 
   @override
-  void drawText(Canvas canvas, KLineEntity data, double x) {
+  void drawText(Canvas canvas, KChartEntity data, double x) {
     //长按显示按中的数据
     if (isLongPress || (isTapShowInfoDialog && isOnTap)) {
       var index = calculateSelectedX(selectX);
@@ -336,7 +342,9 @@ class ChartPainter extends BaseChartPainter {
     //松开显示最后一条数据
     mMainRenderer.drawText(canvas, data, x);
     mVolRenderer?.drawText(canvas, data, x);
-    mSecondaryRenderer?.drawText(canvas, data, x);
+    mSecondaryRenderers.forEach((element) {
+      element.drawText(canvas, data, x);
+    });
   }
 
   @override
@@ -491,7 +499,7 @@ class ChartPainter extends BaseChartPainter {
   ///画交叉线
   void drawCrossLine(Canvas canvas, Size size) {
     var index = calculateSelectedX(selectX);
-    KLineEntity point = getItem(index);
+    KChartEntity point = getItem(index);
     Paint paintY = Paint()
       ..color = this.chartColors.vCrossColor
       ..strokeWidth = this.chartStyle.vCrossWidth
@@ -541,7 +549,10 @@ class ChartPainter extends BaseChartPainter {
 
   /// 点是否在SecondaryRect中
   bool isInSecondaryRect(Offset point) {
-    return mSecondaryRect?.contains(point) ?? false;
+    return mSecondaryRects
+            .where((element) => element.contains(point) == true)
+            .length >
+        0;
   }
 
   /// 点是否在MainRect中

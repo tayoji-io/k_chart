@@ -165,14 +165,15 @@ abstract class BaseChartPainter extends CustomPainter {
   void drawCrossLineText(Canvas canvas, Size size);
 
   void initRect(Size size) {
-    final h = mDisplayHeight * 0.2;
+    final h = chartStyle.secondaryHeight ?? mDisplayHeight * 0.2;
     double volHeight = volHidden != true ? h : 0;
 
-    double secondaryHeight = h * secondaryIndicators.length;
+    double secondaryHeight = (h) * secondaryIndicators.length;
 
     double mainHeight = mDisplayHeight;
     mainHeight -= volHeight;
-    mainHeight -= secondaryHeight;
+    mainHeight -=
+        (secondaryHeight + secondaryIndicators.length * mChildPadding);
 
     mMainRect = Rect.fromLTRB(0, mTopPadding, mWidth, mTopPadding + mainHeight);
 
@@ -186,7 +187,7 @@ abstract class BaseChartPainter extends CustomPainter {
     var bottom = mMainRect.bottom + mChildPadding + volHeight;
     for (var i = 0; i < secondaryIndicators.length; i++) {
       mSecondaryRects.add(Rect.fromLTRB(0, bottom, mWidth, bottom + h));
-      bottom += h;
+      bottom += (h + mChildPadding);
     }
   }
 
@@ -212,8 +213,8 @@ abstract class BaseChartPainter extends CustomPainter {
         .fold<List<double?>>(
             [], (previousValue, element) => previousValue + element);
 
-    maxPrice = max(prices.maxValue?.toDouble() ?? 0, item.high);
-    minPrice = min(prices.minValue?.toDouble() ?? 0, item.low);
+    maxPrice = max(prices.maxValue?.toDouble() ?? item.high, item.high);
+    minPrice = min(prices.minValue?.toDouble() ?? item.low, item.low);
     mMainMaxValue = max(mMainMaxValue, maxPrice);
     mMainMinValue = min(mMainMinValue, minPrice);
 
@@ -240,11 +241,18 @@ abstract class BaseChartPainter extends CustomPainter {
   }
 
   void getSecondaryMaxMinValue(KChartEntity item) {
-    for (var item in item.secondaryPlot) {
-      final prices = item.map((e) => e.value).toList();
-      mSecondaryMaxValues.add(prices.maxValue?.toDouble() ?? 0);
-      mSecondaryMinValues.add(prices.minValue?.toDouble() ?? 0);
+    for (var i = 0; i < item.secondaryPlot.length; i++) {
+      final prices = item.secondaryPlot[i].map((e) => e.value).toList();
+      mSecondaryMaxValues[i] =
+          max(prices.maxValue?.toDouble() ?? 0, mSecondaryMaxValues[i]);
+      mSecondaryMinValues[i] =
+          min(prices.minValue?.toDouble() ?? 0, mSecondaryMinValues[i]);
     }
+    // for (var item in item.secondaryPlot) {
+    //   final prices = item.map((e) => e.value).toList();
+    //   mSecondaryMaxValues.add(prices.maxValue?.toDouble() ?? 0);
+    //   mSecondaryMinValues.add(prices.minValue?.toDouble() ?? 0);
+    // }
   }
 
   double xToTranslateX(double x) => -mTranslateX + x / scaleX;
