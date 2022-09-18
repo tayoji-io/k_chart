@@ -209,7 +209,7 @@ abstract class BaseChartPainter extends CustomPainter {
   void getMainMaxMinValue(KChartEntity item, int i) {
     double maxPrice, minPrice;
     final prices = item.mainPlot
-        .map((e) => e.map((e1) => e1.value).toList())
+        .map((e) => e.plotPoints.map((e1) => e1.value).toList())
         .fold<List<double?>>(
             [], (previousValue, element) => previousValue + element);
 
@@ -242,7 +242,8 @@ abstract class BaseChartPainter extends CustomPainter {
 
   void getSecondaryMaxMinValue(KChartEntity item) {
     for (var i = 0; i < item.secondaryPlot.length; i++) {
-      final prices = item.secondaryPlot[i].map((e) => e.value).toList();
+      final prices =
+          item.secondaryPlot[i].plotPoints.map((e) => e.value).toList();
       mSecondaryMaxValues[i] =
           max(prices.maxValue?.toDouble() ?? 0, mSecondaryMaxValues[i]);
       mSecondaryMinValues[i] =

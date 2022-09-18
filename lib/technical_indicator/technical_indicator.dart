@@ -5,8 +5,8 @@ Future<void> calcTechnicalIndicator(
     List<KChartEntity> dataList,
     List<TechnicalIndicator> mainIndicators,
     List<TechnicalIndicator> secondaryIndicators) async {
-  List<List<List<IndicatorPlotPoint>>> mainPlotPoints = [];
-  List<List<List<IndicatorPlotPoint>>> secondaryPlotPoints = [];
+  List<List<TechnicalIndicatorPlotPoints>> mainPlotPoints = [];
+  List<List<TechnicalIndicatorPlotPoints>> secondaryPlotPoints = [];
 
   for (var item in mainIndicators) {
     item.datas = await item.calcTechnicalIndicator(dataList);
@@ -36,8 +36,8 @@ Future<void> calcTechnicalIndicator(
   }
 
   for (var i = 0; i < dataList.length; i++) {
-    List<List<IndicatorPlotPoint>> mainPlot = [];
-    List<List<IndicatorPlotPoint>> secondaryPlot = [];
+    List<TechnicalIndicatorPlotPoints> mainPlot = [];
+    List<TechnicalIndicatorPlotPoints> secondaryPlot = [];
     for (var item in mainPlotPoints) {
       mainPlot.add(item[i]);
     }
@@ -59,11 +59,11 @@ abstract class TechnicalIndicator {
   late List<num> calcParams;
   late List<IndicatorPlot> plots;
 
-  List<List<IndicatorPlotPoint>> datas = [];
+  List<TechnicalIndicatorPlotPoints> datas = [];
   num? maxValue;
   num? minValue;
 
-  Future<List<List<IndicatorPlotPoint>>> calcTechnicalIndicator(
+  Future<List<TechnicalIndicatorPlotPoints>> calcTechnicalIndicator(
       List<KChartEntity> dataList);
 
   TechnicalIndicator.create(
@@ -75,6 +75,7 @@ abstract class TechnicalIndicator {
 
 class TechnicalIndicatorPlotPoints {
   late String name;
+  late List<num> calcParams;
   late List<IndicatorPlotPoint> plotPoints;
-  TechnicalIndicatorPlotPoints(this.name, this.plotPoints);
+  TechnicalIndicatorPlotPoints(this.name, this.calcParams, this.plotPoints);
 }

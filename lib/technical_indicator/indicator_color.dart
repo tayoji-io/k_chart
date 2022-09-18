@@ -1,6 +1,13 @@
 import 'package:k_chart/entity/k_chart_entity.dart';
 import 'package:k_chart/renderer1/index.dart';
 
+final Map<num, IndicatorColor> indicatorColors = {
+  0: CurValueZeroIndicatorColor(),
+  1: CurValueCompareIndicatorColor(),
+  2: CurOpenCloseIndicatorColor(),
+  3: CurValueHighLowIndicatorColor()
+};
+
 abstract class IndicatorColor {
   /// cValue 当前指标Value
   ///
@@ -69,5 +76,22 @@ class CurOpenCloseIndicatorColor extends IndicatorColor {
       return colors.dnColor;
     }
     return colors.noChangeColor;
+  }
+}
+
+class CurValueHighLowIndicatorColor extends IndicatorColor {
+  @override
+  Color calculate({
+    required KChartEntity last,
+    required KChartEntity cur,
+    double? lValue,
+    double? cValue,
+    required ChartColors colors,
+  }) {
+    if (cValue == null) return colors.noChangeColor;
+    if (cValue < (cur.high + cur.low) / 2) {
+      return colors.upColor;
+    }
+    return colors.dnColor;
   }
 }

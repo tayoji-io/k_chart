@@ -56,12 +56,20 @@ class ChartColors {
   Color minColor = Color(0xffffffff);
 
   List<Color> plotColors = [
-    Color(0xffC9B885),
-    Color(0xff6CB0A6),
-    Color(0xff9979C6),
-    Color(0xff4729AE),
-    Colors.blue,
-    Colors.brown
+    Color.fromRGBO(75, 135, 185, 1),
+    Color.fromRGBO(192, 108, 132, 1),
+    Color.fromRGBO(246, 114, 128, 1),
+    Color.fromRGBO(248, 177, 149, 1),
+    Color.fromRGBO(116, 180, 155, 1),
+    Color.fromRGBO(0, 168, 181, 1),
+    Color.fromRGBO(46, 139, 87, 1),
+    Color.fromRGBO(70, 130, 180, 1),
+    Color.fromRGBO(30, 144, 255, 1),
+    Color.fromRGBO(100, 149, 237, 1),
+    Color.fromRGBO(73, 76, 162, 1),
+    Color.fromRGBO(218, 165, 32, 1),
+    Color.fromRGBO(255, 205, 96, 1),
+    Color.fromRGBO(245, 222, 179, 1),
   ];
 
   Color getMAColor(int index) {
@@ -118,6 +126,7 @@ class ChartStyle {
   int gridRows = 4;
 
   int gridColumns = 4;
+  double circleRadius = 1.5;
 
   //下方時間客製化
   List<String>? dateTimeFormat;

@@ -45,10 +45,14 @@ class IndicatorBarPlot extends IndicatorPlot {
 }
 
 class IndicatorCirclePlot extends IndicatorPlot {
-  IndicatorCirclePlot.create({
-    required String key,
-    required String title,
-  }) : super.create(key: key, title: title);
+  IndicatorColor? indicatorColor;
+
+  IndicatorCirclePlot.create(
+      {required String key, required String title, this.indicatorColor})
+      : super.create(
+          key: key,
+          title: title,
+        );
 
   @override
   Map<String, dynamic> toJson() {

@@ -39,9 +39,9 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
     try {
       final curPlot = curPoint.secondaryPlot[plotIndex];
       final lastPlot = lastPoint.secondaryPlot[plotIndex];
-      for (var i = 0; i < curPlot.length; i++) {
-        final cur = curPlot[i];
-        final last = lastPlot[i];
+      for (var i = 0; i < curPlot.plotPoints.length; i++) {
+        final cur = curPlot.plotPoints[i];
+        final last = lastPlot.plotPoints[i];
         final plot = cur.plot;
         if (plot is IndicatorLinePlot) {
           drawLine(last.value, cur.value, canvas, lastX, curX,
@@ -82,6 +82,26 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
                   ..style = isStroke ? PaintingStyle.stroke : PaintingStyle.fill
                   ..color = color ?? this.chartColors.upColor);
           }
+        } else if (plot is IndicatorCirclePlot) {
+          final cValue = cur.value;
+          final lValue = last.value;
+          if (cValue == null) {
+            return;
+          }
+          final color = plot.indicatorColor?.calculate(
+              last: lastPoint,
+              cur: curPoint,
+              colors: chartColors,
+              lValue: lValue,
+              cValue: cValue);
+          double y = getY(cValue);
+          canvas.drawCircle(
+              Offset(curX, y),
+              chartStyle.circleRadius,
+              chartPaint
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 0.5
+                ..color = color ?? chartColors.noChangeColor);
         }
       }
     } catch (e) {}
@@ -89,10 +109,14 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
 
   @override
   void drawText(Canvas canvas, KChartEntity data, double x) {
-    List<TextSpan> children = [];
     final plots = data.secondaryPlot[plotIndex];
-    for (var i = 0; i < plots.length; i++) {
-      final plot = plots[i];
+    List<TextSpan> children = [
+      TextSpan(
+          text: "${plots.name} ${plots.calcParams.map((e) => e.toString())}   ",
+          style: getTextStyle(this.chartColors.defaultTextColor))
+    ];
+    for (var i = 0; i < plots.plotPoints.length; i++) {
+      final plot = plots.plotPoints[i];
 
       children.add(TextSpan(
           text: "${plot.plot.title} ${format(plot.value)}   ",

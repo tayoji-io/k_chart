@@ -1,4 +1,5 @@
-var kdj = '''
+class TechnicalindicatorJs {
+  static var kdj = '''
 function calcHnLn (dataList = []) {
   let hn = Number.MIN_SAFE_INTEGER
   let ln = Number.MAX_SAFE_INTEGER
@@ -39,7 +40,7 @@ export default {
 }
 ''';
 
-var vol = '''
+  static var vol = '''
 
 export default {
   name: 'VOL',
@@ -94,7 +95,7 @@ export default {
 
 ''';
 
-var macd = '''
+  static var macd = '''
 export default {
   name: 'MACD',
   shortName: 'MACD',
@@ -157,7 +158,7 @@ export default {
 }
 ''';
 
-var ma = '''
+  static var ma = '''
 export default {
   name: 'MA',
   shortName: 'MA',
@@ -195,3 +196,275 @@ export default {
 }
 
 ''';
+
+  static var bbi = '''
+export default {
+  name: 'BBI',
+  shortName: 'BBI',
+  series: 'price',
+  precision: 2,
+  calcParams: [3, 6, 12, 24],
+  shouldCheckParamCount: true,
+  shouldOhlc: true,
+  plots: [
+    { key: 'bbi', title: 'BBI: ', type: 'line' }
+  ],
+  calcTechnicalIndicator: (dataList, { params }) => {
+    const maxPeriod = Math.max.apply(null, params)
+    const closeSums = []
+    const mas = []
+    return dataList.map((kLineData, i) => {
+      const bbi = {}
+      const close = kLineData.close
+      params.forEach((p, index) => {
+        closeSums[index] = (closeSums[index] || 0) + close
+        if (i >= p - 1) {
+          mas[index] = closeSums[index] / p
+          closeSums[index] -= dataList[i - (p - 1)].close
+        }
+      })
+      if (i >= maxPeriod - 1) {
+        let maSum = 0
+        mas.forEach(ma => {
+          maSum += ma
+        })
+        bbi.bbi = maSum / 4
+      }
+      return bbi
+    })
+  }
+}
+
+''';
+
+  static var ema = '''
+export default {
+  name: 'EMA',
+  shortName: 'EMA',
+  series: 'price',
+  calcParams: [6, 12, 20],
+  precision: 2,
+  shouldCheckParamCount: false,
+  shouldOhlc: true,
+  plots: [
+    { key: 'ema6', title: 'EMA6: ', type: 'line' },
+    { key: 'ema12', title: 'EMA12: ', type: 'line' },
+    { key: 'ema20', title: 'EMA20: ', type: 'line' }
+  ],
+  regeneratePlots: (params) => {
+    return params.map(p => {
+      return { key: `ema\${p}`, title: `EMA\${p}: `, type: 'line' }
+    })
+  },
+  calcTechnicalIndicator: (dataList, { params, plots }) => {
+    let closeSum = 0
+    const emaValues = []
+    return dataList.map((kLineData, i) => {
+      const ema = {}
+      const close = kLineData.close
+      closeSum += close
+      params.forEach((p, index) => {
+        if (i >= p - 1) {
+          if (i > p - 1) {
+            emaValues[index] = (2 * close + (p - 1) * emaValues[index]) / (p + 1)
+          } else {
+            emaValues[index] = closeSum / p
+          }
+          ema[plots[index].key] = emaValues[index]
+        }
+      })
+      return ema
+    })
+  }
+}
+''';
+
+  static var sma = '''
+export default {
+  name: 'SMA',
+  shortName: 'SMA',
+  series: 'price',
+  calcParams: [12, 2],
+  precision: 2,
+  plots: [
+    { key: 'sma', title: 'SMA: ', type: 'line' }
+  ],
+  shouldCheckParamCount: true,
+  shouldOhlc: true,
+  calcTechnicalIndicator: (kLineDataList, { params }) => {
+    let closeSum = 0
+    let smaValue = 0
+    return kLineDataList.map((kLineData, i) => {
+      const sma = {}
+      const close = kLineData.close
+      closeSum += close
+      if (i >= params[0] - 1) {
+        if (i > params[0] - 1) {
+          smaValue = (close * params[1] + smaValue * (params[0] - params[1] + 1)) / (params[0] + 1)
+        } else {
+          smaValue = closeSum / params[0]
+        }
+        sma.sma = smaValue
+      }
+      return sma
+    })
+  }
+}
+''';
+
+  static var boll = '''
+export default {
+  name: 'BOLL',
+  shortName: 'BOLL',
+  series: 'price',
+  calcParams: [20, { value: 2, allowDecimal: true }],
+  precision: 2,
+  shouldOhlc: true,
+  plots: [
+    { key: 'up', title: 'UP: ', type: 'line' },
+    { key: 'mid', title: 'MID: ', type: 'line' },
+    { key: 'dn', title: 'DN: ', type: 'line' }
+  ],
+  calcTechnicalIndicator: (dataList, { params }) => {
+    const p = params[0] - 1
+    let closeSum = 0
+    return dataList.map((kLineData, i) => {
+      const close = kLineData.close
+      const boll = {}
+      closeSum += close
+      if (i >= p) {
+        boll.mid = closeSum / params[0]
+        const md = getBollMd(dataList.slice(i - p, i + 1), boll.mid)
+        boll.up = boll.mid + params[1] * md
+        boll.dn = boll.mid - params[1] * md
+        closeSum -= dataList[i - p].close
+      }
+      return boll
+    })
+  }
+}
+
+''';
+  static var sar = '''
+export default {
+  name: 'SAR',
+  shortName: 'SAR',
+  series: 'price',
+  calcParams: [2, 2, 20],
+  precision: 2,
+  shouldOhlc: true,
+  plots: [
+    {
+      key: 'sar',
+      title: 'SAR: ',
+      type: 'circle',
+      color: 3
+    }
+  ],
+  calcTechnicalIndicator: (dataList, { params }) => {
+    const startAf = params[0] / 100
+    const step = params[1] / 100
+    const maxAf = params[2] / 100
+
+    // 加速因子
+    let af = startAf
+    // 极值
+    let ep = -100
+    // 判断是上涨还是下跌  false：下跌
+    let isIncreasing = false
+    let sar = 0
+    return dataList.map((kLineData, i) => {
+      // 上一个周期的sar
+      const preSar = sar
+      const high = kLineData.high
+      const low = kLineData.low
+      if (isIncreasing) {
+        // 上涨
+        if (ep === -100 || ep < high) {
+          // 重新初始化值
+          ep = high
+          af = Math.min(af + step, maxAf)
+        }
+        sar = preSar + af * (ep - preSar)
+        const lowMin = Math.min(dataList[Math.max(1, i) - 1].low, low)
+        if (sar > kLineData.low) {
+          sar = ep
+          // 重新初始化值
+          af = startAf
+          ep = -100
+          isIncreasing = !isIncreasing
+        } else if (sar > lowMin) {
+          sar = lowMin
+        }
+      } else {
+        if (ep === -100 || ep > low) {
+          // 重新初始化值
+          ep = low
+          af = Math.min(af + step, maxAf)
+        }
+        sar = preSar + af * (ep - preSar)
+        const highMax = Math.max(dataList[Math.max(1, i) - 1].high, high)
+        if (sar < kLineData.high) {
+          sar = ep
+          // 重新初始化值
+          af = 0
+          ep = -100
+          isIncreasing = !isIncreasing
+        } else if (sar < highMax) {
+          sar = highMax
+        }
+      }
+      return { sar }
+    })
+  }
+}
+
+''';
+  static var mda = '''
+export default {
+  name: 'DMA',
+  shortName: 'DMA',
+  calcParams: [10, 50, 10],
+  plots: [
+    { key: 'dma', title: 'DMA: ', type: 'line' },
+    { key: 'ama', title: 'AMA: ', type: 'line' }
+  ],
+  calcTechnicalIndicator: (dataList, { params }) => {
+    const maxPeriod = Math.max(params[0], params[1])
+    let closeSum1 = 0
+    let closeSum2 = 0
+    let dmaSum = 0
+    const result = []
+    dataList.forEach((kLineData, i) => {
+      const dma = {}
+      const close = kLineData.close
+      closeSum1 += close
+      closeSum2 += close
+      let ma1
+      let ma2
+      if (i >= params[0] - 1) {
+        ma1 = closeSum1 / params[0]
+        closeSum1 -= dataList[i - (params[0] - 1)].close
+      }
+      if (i >= params[1] - 1) {
+        ma2 = closeSum2 / params[1]
+        closeSum2 -= dataList[i - (params[1] - 1)].close
+      }
+
+      if (i >= maxPeriod - 1) {
+        const dif = ma1 - ma2
+        dma.dma = dif
+        dmaSum += dif
+        if (i >= maxPeriod + params[2] - 2) {
+          dma.ama = dmaSum / params[2]
+          dmaSum -= result[i - (params[2] - 1)].dma
+        }
+      }
+      result.push(dma)
+    })
+    return result
+  }
+}
+
+''';
+}

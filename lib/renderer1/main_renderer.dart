@@ -78,10 +78,10 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
       span = TextSpan(
           children: data.mainPlot.map((e) {
         return TextSpan(children: [
-          // TextSpan(
-          //     text: "",
-          //     style: getTextStyle(this.chartColors.plotColors[colorIndex])),
-          ...e.map((e) {
+          TextSpan(
+              text: "${e.name} ${e.calcParams.map((e) => e.toString())}   ",
+              style: getTextStyle(this.chartColors.defaultTextColor)),
+          ...e.plotPoints.map((e) {
             colorIndex += 1;
             return TextSpan(
                 text: "${e.plot.title} ${format(e.value)}   ",
@@ -106,18 +106,40 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
     } else {
       drawCandle(curPoint, canvas, curX);
     }
+
     var colorIndex = 0;
     for (var i = 0; i < curPoint.mainPlot.length; i++) {
       final curMainPlots = curPoint.mainPlot[i];
       final lastMainPlots = lastPoint.mainPlot[i];
-      for (var j = 0; j < curMainPlots.length; j++) {
-        final cplot = curMainPlots[j];
-        final lplot = lastMainPlots[j];
-        if (cplot.plot is IndicatorLinePlot) {
+      for (var j = 0; j < curMainPlots.plotPoints.length; j++) {
+        final cplot = curMainPlots.plotPoints[j];
+        final lplot = lastMainPlots.plotPoints[j];
+        final plot = cplot.plot;
+        if (plot is IndicatorLinePlot) {
           drawLine(lplot.value, cplot.value, canvas, lastX, curX,
               chartColors.plotColors[colorIndex]);
           colorIndex += 1;
-        } else {}
+        } else if (plot is IndicatorCirclePlot) {
+          final cValue = cplot.value;
+          final lValue = lplot.value;
+          if (cValue == null) {
+            return;
+          }
+          final color = plot.indicatorColor?.calculate(
+              last: lastPoint,
+              cur: curPoint,
+              colors: chartColors,
+              lValue: lValue,
+              cValue: cValue);
+          double y = getY(cValue);
+          canvas.drawCircle(
+              Offset(curX, y),
+              chartStyle.circleRadius,
+              chartPaint
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 0.5
+                ..color = color ?? chartColors.noChangeColor);
+        }
       }
     }
   }
@@ -212,6 +234,7 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
     var close = getY(curPoint.close);
     double r = mCandleWidth / 2;
     double lineR = mCandleLineWidth / 2;
+    chartPaint.style = PaintingStyle.fill;
     if (open >= close) {
       // 实体高度>= CandleLineWidth
       if (open - close < mCandleLineWidth) {

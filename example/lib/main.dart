@@ -89,13 +89,18 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final List<TechnicalIndicator> mains = [
-      KJsonIndicator.create(js: ma),
+      KJsonIndicator.create(js: TechnicalindicatorJs.bbi),
+      // KJsonIndicator.create(js: ema),
+      // KJsonIndicator.create(js: ma),
+      KJsonIndicator.create(js: TechnicalindicatorJs.sma),
+      KJsonIndicator.create(js: TechnicalindicatorJs.boll),
+      KJsonIndicator.create(js: TechnicalindicatorJs.sar),
     ];
 
     final List<TechnicalIndicator> secondarys = [
-      KJsonIndicator.create(js: kdj),
-      KJsonIndicator.create(js: macd),
-      KJsonIndicator.create(js: vol),
+      KJsonIndicator.create(js: TechnicalindicatorJs.kdj),
+      KJsonIndicator.create(js: TechnicalindicatorJs.macd),
+      KJsonIndicator.create(js: TechnicalindicatorJs.vol),
     ];
 
     final jsonTime = DateTime.now();
@@ -309,7 +314,7 @@ class KJsonIndicator extends TechnicalIndicator {
   }) : super.create(name: '', shortName: '', calcParams: [], plots: []);
 
   @override
-  Future<List<List<IndicatorPlotPoint>>> calcTechnicalIndicator(
+  Future<List<TechnicalIndicatorPlotPoints>> calcTechnicalIndicator(
       List<KChartEntity> dataList) async {
     try {
       final engine = IsolateQjs(
@@ -353,6 +358,7 @@ import("hello").then(({default: greet}) => greet.plots)
                 return IndicatorCirclePlot.create(
                   key: key,
                   title: title,
+                  indicatorColor: indicatorColors[color],
                 );
             }
             return null;
@@ -368,29 +374,22 @@ import("hello").then(({default: greet}) => greet.calcTechnicalIndicator(${json.e
 }))
 ''')) as List).map((e) {
         var d = e as Map;
-        return plots.map((e) {
-          final v = d[e.key];
-          if (v != null && v is num) {
-            return IndicatorPlotPoint(plot: e, value: v.toDouble());
-          }
-          return IndicatorPlotPoint(plot: e);
-        }).toList();
+        return TechnicalIndicatorPlotPoints(
+            name,
+            calcParams,
+            plots.map((e) {
+              final v = d[e.key];
+              if (v != null && v is num) {
+                return IndicatorPlotPoint(plot: e, value: v.toDouble());
+              }
+              return IndicatorPlotPoint(plot: e);
+            }).toList());
       }).toList();
 
       return points;
     } catch (e) {
-      print(e);
+      print('---e-----$e');
     }
     return [];
   }
 }
-
-final Map<num, IndicatorColor> indicatorColors = {
-  0: CurValueZeroIndicatorColor(),
-  1: CurValueCompareIndicatorColor(),
-  2: CurOpenCloseIndicatorColor()
-};
-
-final Map<num, IndicatorBarStroke> indicatorBarStrokes = {
-  0: CLValueBarStroke(),
-};
