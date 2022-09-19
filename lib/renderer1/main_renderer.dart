@@ -114,6 +114,9 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
       for (var j = 0; j < curMainPlots.plotPoints.length; j++) {
         final cplot = curMainPlots.plotPoints[j];
         final lplot = lastMainPlots.plotPoints[j];
+        // if (cplot.value ==  || lplot.value == null) {
+        //   break;
+        // }
         final plot = cplot.plot;
         if (plot is IndicatorLinePlot) {
           drawLine(lplot.value, cplot.value, canvas, lastX, curX,

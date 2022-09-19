@@ -89,18 +89,18 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     final List<TechnicalIndicator> mains = [
-      KJsonIndicator.create(js: TechnicalindicatorJs.bbi),
+      // KJsonIndicator.create(js: TechnicalindicatorJs.bbi),
       // KJsonIndicator.create(js: ema),
       // KJsonIndicator.create(js: ma),
-      KJsonIndicator.create(js: TechnicalindicatorJs.sma),
+      // KJsonIndicator.create(js: TechnicalindicatorJs.sma),
       KJsonIndicator.create(js: TechnicalindicatorJs.boll),
-      KJsonIndicator.create(js: TechnicalindicatorJs.sar),
+      // KJsonIndicator.create(js: TechnicalindicatorJs.sar),
     ];
 
     final List<TechnicalIndicator> secondarys = [
-      KJsonIndicator.create(js: TechnicalindicatorJs.kdj),
-      KJsonIndicator.create(js: TechnicalindicatorJs.macd),
-      KJsonIndicator.create(js: TechnicalindicatorJs.vol),
+      // KJsonIndicator.create(js: TechnicalindicatorJs.kdj),
+      // KJsonIndicator.create(js: TechnicalindicatorJs.macd),
+      // KJsonIndicator.create(js: TechnicalindicatorJs.vol),
     ];
 
     final jsonTime = DateTime.now();
@@ -201,44 +201,44 @@ class _MyHomePageState extends State<MyHomePage> {
     return Wrap(
       alignment: WrapAlignment.spaceEvenly,
       children: <Widget>[
-        button("Time Mode", onPressed: () {
+        button("Refresh", onPressed: () {
           // isLine = true;
           test();
         }),
-        button("K Line Mode", onPressed: () => isLine = false),
-        button("TrendLine", onPressed: () => _isTrendLine = !_isTrendLine),
-        button(_volHidden ? "Show Vol" : "Hide Vol",
-            onPressed: () => _volHidden = !_volHidden),
-        button("Change Language", onPressed: () => isChinese = !isChinese),
-        button(_hideGrid ? "Show Grid" : "Hide Grid",
-            onPressed: () => _hideGrid = !_hideGrid),
-        button(_showNowPrice ? "Hide Now Price" : "Show Now Price",
-            onPressed: () => _showNowPrice = !_showNowPrice),
-        button("Customize UI", onPressed: () {
-          setState(() {
-            this.isChangeUI = !this.isChangeUI;
-            if (this.isChangeUI) {
-              chartColors.selectBorderColor = Colors.red;
-              chartColors.selectFillColor = Colors.red;
-              chartColors.lineFillColor = Colors.red;
-              chartColors.kLineColor = Colors.yellow;
-            } else {
-              chartColors.selectBorderColor = Color(0xff6C7A86);
-              chartColors.selectFillColor = Color(0xff0D1722);
-              chartColors.lineFillColor = Color(0x554C86CD);
-              chartColors.kLineColor = Color(0xff4C86CD);
-            }
-          });
-        }),
-        button("Change PriceTextPaint",
-            onPressed: () => setState(() {
-                  _priceLeft = !_priceLeft;
-                  if (_priceLeft) {
-                    _verticalTextAlignment = VerticalTextAlignment.left;
-                  } else {
-                    _verticalTextAlignment = VerticalTextAlignment.right;
-                  }
-                })),
+        // button("K Line Mode", onPressed: () => isLine = false),
+        // button("TrendLine", onPressed: () => _isTrendLine = !_isTrendLine),
+        // button(_volHidden ? "Show Vol" : "Hide Vol",
+        //     onPressed: () => _volHidden = !_volHidden),
+        // button("Change Language", onPressed: () => isChinese = !isChinese),
+        // button(_hideGrid ? "Show Grid" : "Hide Grid",
+        //     onPressed: () => _hideGrid = !_hideGrid),
+        // button(_showNowPrice ? "Hide Now Price" : "Show Now Price",
+        //     onPressed: () => _showNowPrice = !_showNowPrice),
+        // button("Customize UI", onPressed: () {
+        //   setState(() {
+        //     this.isChangeUI = !this.isChangeUI;
+        //     if (this.isChangeUI) {
+        //       chartColors.selectBorderColor = Colors.red;
+        //       chartColors.selectFillColor = Colors.red;
+        //       chartColors.lineFillColor = Colors.red;
+        //       chartColors.kLineColor = Colors.yellow;
+        //     } else {
+        //       chartColors.selectBorderColor = Color(0xff6C7A86);
+        //       chartColors.selectFillColor = Color(0xff0D1722);
+        //       chartColors.lineFillColor = Color(0x554C86CD);
+        //       chartColors.kLineColor = Color(0xff4C86CD);
+        //     }
+        //   });
+        // }),
+        // button("Change PriceTextPaint",
+        //     onPressed: () => setState(() {
+        //           _priceLeft = !_priceLeft;
+        //           if (_priceLeft) {
+        //             _verticalTextAlignment = VerticalTextAlignment.left;
+        //           } else {
+        //             _verticalTextAlignment = VerticalTextAlignment.right;
+        //           }
+        //         })),
       ],
     );
   }
@@ -331,7 +331,7 @@ import("hello").then(({default: greet}) => greet.shortName)
 ''');
       calcParams = ((await engine.evaluate('''
 import("hello").then(({default: greet}) => greet.calcParams)
-''')) as List).map((e) => e as num).toList();
+''')) as List).map((e) => e).toList();
 
       plots = ((await engine.evaluate('''
 import("hello").then(({default: greet}) => greet.plots)
@@ -388,7 +388,7 @@ import("hello").then(({default: greet}) => greet.calcTechnicalIndicator(${json.e
 
       return points;
     } catch (e) {
-      print('---e-----$e');
+      print('---e-----$e $name');
     }
     return [];
   }

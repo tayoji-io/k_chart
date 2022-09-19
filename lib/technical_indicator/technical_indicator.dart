@@ -56,7 +56,7 @@ Future<void> calcTechnicalIndicator(
 abstract class TechnicalIndicator {
   late String name;
   late String shortName;
-  late List<num> calcParams;
+  late List<dynamic> calcParams;
   late List<IndicatorPlot> plots;
 
   List<TechnicalIndicatorPlotPoints> datas = [];
@@ -75,7 +75,7 @@ abstract class TechnicalIndicator {
 
 class TechnicalIndicatorPlotPoints {
   late String name;
-  late List<num> calcParams;
+  late List<dynamic> calcParams;
   late List<IndicatorPlotPoint> plotPoints;
   TechnicalIndicatorPlotPoints(this.name, this.calcParams, this.plotPoints);
 }
