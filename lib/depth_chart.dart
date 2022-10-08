@@ -253,7 +253,7 @@ class DepthChartPainter extends CustomPainter {
     for (int j = 0; j < mLineCount; j++) {
       value = mMaxVolume! - mMultiple! * j;
       str = value.toStringAsFixed(fixedLength!);
-      var tp = getTextPainter(str);
+      var tp = getTextPainter(str, chartColors.depthTextColor);
       tp.layout();
       tp.paint(
           canvas,
@@ -262,14 +262,14 @@ class DepthChartPainter extends CustomPainter {
     }
 
     var startText = mBuyData!.first.price.toStringAsFixed(fixedLength!);
-    TextPainter startTP = getTextPainter(startText);
+    TextPainter startTP = getTextPainter(startText, chartColors.depthTextColor);
     startTP.layout();
     startTP.paint(canvas, Offset(0, getBottomTextY(startTP.height)));
 
     double centerPrice = (mBuyData!.last.price + mSellData!.first.price) / 2;
 
     var center = centerPrice.toStringAsFixed(fixedLength!);
-    TextPainter centerTP = getTextPainter(center);
+    TextPainter centerTP = getTextPainter(center, chartColors.depthTextColor);
     centerTP.layout();
     centerTP.paint(
         canvas,
@@ -277,14 +277,15 @@ class DepthChartPainter extends CustomPainter {
             mDrawWidth - centerTP.width / 2, getBottomTextY(centerTP.height)));
 
     var endText = mSellData!.last.price.toStringAsFixed(fixedLength!);
-    TextPainter endTP = getTextPainter(endText);
+    TextPainter endTP = getTextPainter(endText, chartColors.depthTextColor);
     endTP.layout();
     endTP.paint(
         canvas, Offset(mWidth - endTP.width, getBottomTextY(endTP.height)));
 
     var leftHalfText = ((mBuyData!.first.price + centerPrice) / 2)
         .toStringAsFixed(fixedLength!);
-    TextPainter leftHalfTP = getTextPainter(leftHalfText);
+    TextPainter leftHalfTP =
+        getTextPainter(leftHalfText, chartColors.depthTextColor);
     leftHalfTP.layout();
     leftHalfTP.paint(
         canvas,
@@ -293,7 +294,8 @@ class DepthChartPainter extends CustomPainter {
 
     var rightHalfText = ((mSellData!.last.price + centerPrice) / 2)
         .toStringAsFixed(fixedLength!);
-    TextPainter rightHalfTP = getTextPainter(rightHalfText);
+    TextPainter rightHalfTP =
+        getTextPainter(rightHalfText, chartColors.depthTextColor);
     rightHalfTP.layout();
     rightHalfTP.paint(
         canvas,

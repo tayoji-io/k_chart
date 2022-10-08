@@ -10,29 +10,16 @@ Future<void> calcTechnicalIndicator(
 
   for (var item in mainIndicators) {
     item.datas = await item.calcTechnicalIndicator(dataList);
-    // final values = item.datas
-    //     .map((e) => e.map((e) => e.value).toList())
-    //     .toList()
-    //     .fold<List<num?>>(
-    //         [], (previousValue, element) => previousValue + element);
+
     if (dataList.length == item.datas.length) {
       mainPlotPoints.add(item.datas);
     }
-    // item.maxValue = values.maxValue;
-    // item.minValue = values.minValue;
   }
   for (var item in secondaryIndicators) {
     item.datas = await item.calcTechnicalIndicator(dataList);
-    // final values = item.datas
-    //     .map((e) => e.map((e) => e.value).toList())
-    //     .toList()
-    //     .fold<List<num?>>(
-    //         [], (previousValue, element) => previousValue + element);
     if (dataList.length == item.datas.length) {
       secondaryPlotPoints.add(item.datas);
     }
-    // item.maxValue = values.maxValue;
-    // item.minValue = values.minValue;
   }
 
   for (var i = 0; i < dataList.length; i++) {
@@ -46,17 +33,13 @@ Future<void> calcTechnicalIndicator(
     }
     dataList[i].mainPlot = mainPlot;
     dataList[i].secondaryPlot = secondaryPlot;
-    if (secondaryPlot.length == 0) {
-      print('xxxxxxxxxx $i');
-    }
   }
-  print('+++++++');
 }
 
 abstract class TechnicalIndicator {
   late String name;
   late String shortName;
-  late List<dynamic> calcParams;
+  late List<num> calcParams;
   late List<IndicatorPlot> plots;
 
   List<TechnicalIndicatorPlotPoints> datas = [];

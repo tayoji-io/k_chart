@@ -1,12 +1,12 @@
 import 'package:k_chart/technical_indicator/technical_indicator.dart';
 
 class KChartEntity {
-  late double open;
-  late double high;
-  late double low;
-  late double close;
-  late double vol;
-  late int time;
+  double open = 0;
+  double high = 0;
+  double low = 0;
+  double close = 0;
+  double vol = 0;
+  int time = 0;
   List<TechnicalIndicatorPlotPoints> mainPlot = [];
 
   List<TechnicalIndicatorPlotPoints> secondaryPlot = [];

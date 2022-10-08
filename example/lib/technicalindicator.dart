@@ -97,7 +97,7 @@ export default {
 
   static var macd = '''
 export default {
-  name: 'MACD',
+  name: 'ma',
   shortName: 'MACD',
   calcParams: [12, 26, 9],
   plots: [
@@ -318,18 +318,19 @@ function getBollMd (dataList, ma) {
   let sum = 0
   dataList.forEach(data => {
     const closeMa = data.close - ma
-    sum += closeMa * closeMa
+    sum += (closeMa * closeMa)
   })
   const b = sum > 0
   sum = Math.abs(sum)
   const md = Math.sqrt(sum / dataSize)
   return b ? md : -1 * md
 }
+
 export default {
   name: 'BOLL',
   shortName: 'BOLL',
   series: 'price',
-  calcParams: [20, { value: 2, allowDecimal: true }],
+  calcParams: [20, 2],
   precision: 2,
   shouldOhlc: true,
   plots: [

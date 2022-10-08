@@ -63,6 +63,7 @@ class KLineChart extends StatefulWidget {
   final VerticalTextAlignment verticalTextAlignment;
   final bool isTrendLine;
   final double xFrontPadding;
+  final double initialScaleX;
 
   KLineChart(
     this.datas,
@@ -88,6 +89,7 @@ class KLineChart extends StatefulWidget {
     this.maDayList = const [5, 10, 20],
     this.flingTime = 600,
     this.flingRatio = 0.5,
+    this.initialScaleX = 1.0,
     this.flingCurve = Curves.decelerate,
     this.isOnDrag,
     this.verticalTextAlignment = VerticalTextAlignment.left,
@@ -142,8 +144,9 @@ class _KChartWidgetState extends State<KLineChart>
   Widget build(BuildContext context) {
     if (widget.datas != null && widget.datas!.isEmpty) {
       mScrollX = mSelectX = 0.0;
-      mScaleX = 1.0;
+      mScaleX = widget.initialScaleX;
     }
+
     final _painter = ChartPainter(
       widget.chartStyle,
       widget.chartColors,

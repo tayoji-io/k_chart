@@ -331,7 +331,7 @@ import("hello").then(({default: greet}) => greet.shortName)
 ''');
       calcParams = ((await engine.evaluate('''
 import("hello").then(({default: greet}) => greet.calcParams)
-''')) as List).map((e) => e).toList();
+''')) as List).map((e) => e as num).toList();
 
       plots = ((await engine.evaluate('''
 import("hello").then(({default: greet}) => greet.plots)

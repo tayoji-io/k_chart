@@ -32,6 +32,7 @@ class ChartColors {
   //深度颜色
   Color depthBuyColor = Color(0xff60A893);
   Color depthSellColor = Color(0xffC15866);
+  Color depthTextColor = Colors.white;
 
   //选中后显示值边框颜色
   Color selectBorderColor = Color(0xff6C7A86);

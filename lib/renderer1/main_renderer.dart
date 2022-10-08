@@ -107,7 +107,7 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
       drawCandle(curPoint, canvas, curX);
     }
 
-    var colorIndex = 0;
+    var colorIndex = -1;
     for (var i = 0; i < curPoint.mainPlot.length; i++) {
       final curMainPlots = curPoint.mainPlot[i];
       final lastMainPlots = lastPoint.mainPlot[i];
@@ -119,9 +119,12 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
         // }
         final plot = cplot.plot;
         if (plot is IndicatorLinePlot) {
-          drawLine(lplot.value, cplot.value, canvas, lastX, curX,
-              chartColors.plotColors[colorIndex]);
-          colorIndex += 1;
+          try {
+            colorIndex += 1;
+
+            drawLine(lplot.value, cplot.value, canvas, lastX, curX,
+                chartColors.plotColors[colorIndex]);
+          } catch (e) {}
         } else if (plot is IndicatorCirclePlot) {
           final cValue = cplot.value;
           final lValue = lplot.value;
