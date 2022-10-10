@@ -127,8 +127,9 @@ class ChartPainter extends BaseChartPainter {
           mChildPadding, fixedLength, this.chartStyle, this.chartColors);
     }
 
+    var _mSecondaryRenderers = <SecondaryRenderer>[];
     for (var i = 0; i < secondaryIndicators.length; i++) {
-      mSecondaryRenderers.add(SecondaryRenderer(
+      _mSecondaryRenderers.add(SecondaryRenderer(
           mSecondaryRects[i],
           mSecondaryMaxValues[i],
           mSecondaryMinValues[i],
@@ -138,6 +139,7 @@ class ChartPainter extends BaseChartPainter {
           chartColors,
           i));
     }
+    mSecondaryRenderers = _mSecondaryRenderers;
   }
 
   @override

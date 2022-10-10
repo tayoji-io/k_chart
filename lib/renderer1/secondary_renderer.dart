@@ -147,7 +147,7 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
 
   @override
   void drawGrid(Canvas canvas, int gridRows, int gridColumns) {
-    gridPaint..color = chartColors.gridColor;
+    // print("s------drawGrid");
     canvas.drawLine(Offset(0, chartRect.top),
         Offset(chartRect.width, chartRect.top), gridPaint);
     canvas.drawLine(Offset(0, chartRect.bottom),
