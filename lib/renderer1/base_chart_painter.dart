@@ -34,9 +34,9 @@ abstract class BaseChartPainter extends CustomPainter {
   int mStartIndex = 0, mStopIndex = 0;
   double mMainMaxValue = double.minPositive, mMainMinValue = double.maxFinite;
   late List<double> mSecondaryMaxValues =
-          secondaryIndicators.map((e) => (e.maxValue ?? 0).toDouble()).toList(),
+          secondaryIndicators.map((e) => double.minPositive).toList(),
       mSecondaryMinValues =
-          secondaryIndicators.map((e) => (e.minValue ?? 0).toDouble()).toList();
+          secondaryIndicators.map((e) => double.maxFinite).toList();
   double mTranslateX = double.minPositive;
   int mMainMaxIndex = 0, mMainMinIndex = 0;
   double mMainHighMaxValue = double.minPositive,
@@ -242,18 +242,14 @@ abstract class BaseChartPainter extends CustomPainter {
 
   void getSecondaryMaxMinValue(KChartEntity item) {
     for (var i = 0; i < item.secondaryPlot.length; i++) {
-      final prices =
-          item.secondaryPlot[i].plotPoints.map((e) => e.value).toList();
+      final plotPoints = item.secondaryPlot[i].plotPoints;
+
+      final prices = plotPoints.map((e) => e.value).toList();
       mSecondaryMaxValues[i] =
           max(prices.maxValue?.toDouble() ?? 0, mSecondaryMaxValues[i]);
       mSecondaryMinValues[i] =
           min(prices.minValue?.toDouble() ?? 0, mSecondaryMinValues[i]);
     }
-    // for (var item in item.secondaryPlot) {
-    //   final prices = item.map((e) => e.value).toList();
-    //   mSecondaryMaxValues.add(prices.maxValue?.toDouble() ?? 0);
-    //   mSecondaryMinValues.add(prices.minValue?.toDouble() ?? 0);
-    // }
   }
 
   double xToTranslateX(double x) => -mTranslateX + x / scaleX;

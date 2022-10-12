@@ -137,7 +137,8 @@ class ChartPainter extends BaseChartPainter {
           fixedLength,
           chartStyle,
           chartColors,
-          i));
+          i,
+          scaleX));
     }
     mSecondaryRenderers = _mSecondaryRenderers;
   }

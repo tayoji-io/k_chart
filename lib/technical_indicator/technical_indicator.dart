@@ -43,8 +43,8 @@ abstract class TechnicalIndicator {
   late List<IndicatorPlot> plots;
 
   List<TechnicalIndicatorPlotPoints> datas = [];
-  num? maxValue;
-  num? minValue;
+  // num? maxValue;
+  // num? minValue;
 
   Future<List<TechnicalIndicatorPlotPoints>> calcTechnicalIndicator(
       List<KChartEntity> dataList);

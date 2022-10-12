@@ -7,6 +7,7 @@ import '../entity/candle_entity.dart';
 import 'base_chart_renderer.dart';
 
 enum VerticalTextAlignment { left, right }
+
 //For TrendLine
 double? trendLineMax;
 double? trendLineScale;
@@ -94,7 +95,7 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
 
     if (span == null) return;
     TextPainter tp = TextPainter(text: span, textDirection: TextDirection.ltr);
-    tp.layout();
+    tp.layout(maxWidth: chartRect.width);
     tp.paint(canvas, Offset(x, chartRect.top - topPadding));
   }
 
@@ -111,6 +112,7 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
     for (var i = 0; i < curPoint.mainPlot.length; i++) {
       final curMainPlots = curPoint.mainPlot[i];
       final lastMainPlots = lastPoint.mainPlot[i];
+
       for (var j = 0; j < curMainPlots.plotPoints.length; j++) {
         final cplot = curMainPlots.plotPoints[j];
         final lplot = lastMainPlots.plotPoints[j];
@@ -123,7 +125,7 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
             colorIndex += 1;
 
             drawLine(lplot.value, cplot.value, canvas, lastX, curX,
-                chartColors.plotColors[colorIndex]);
+                chartColors.plotColors[colorIndex], chartStyle.lineWidth);
           } catch (e) {}
         } else if (plot is IndicatorCirclePlot) {
           final cValue = cplot.value;
@@ -138,13 +140,52 @@ class MainRenderer extends BaseChartRenderer<KChartEntity> {
               lValue: lValue,
               cValue: cValue);
           double y = getY(cValue);
-          canvas.drawCircle(
-              Offset(curX, y),
-              chartStyle.circleRadius,
+          final width = chartStyle.circleRadius * 2;
+          final height = chartStyle.circleRadius * 2 * scaleX;
+
+          canvas.drawOval(
+              Rect.fromCenter(
+                  center: Offset(curX, y), width: width, height: height),
               chartPaint
                 ..style = PaintingStyle.stroke
                 ..strokeWidth = 0.5
                 ..color = color ?? chartColors.noChangeColor);
+        } else if (plot is IndicatorBarPlot) {
+          final cValue = cplot.value;
+          final lValue = lplot.value;
+          final baseValue = plot.baseValue.toDouble();
+          if (cValue == null) {
+            return;
+          }
+          double macdY = getY(cValue);
+          double r = chartStyle.macdWidth / 2;
+          double zeroy = getY(baseValue);
+          final color = plot.indicatorColor?.calculate(
+              last: lastPoint,
+              cur: curPoint,
+              colors: chartColors,
+              lValue: lValue,
+              cValue: cValue);
+          final isStroke = plot.indicatorBarStroke?.calculate(
+                  last: lastPoint,
+                  cur: curPoint,
+                  lValue: lValue,
+                  cValue: cValue) ??
+              false;
+          if (cValue > baseValue) {
+            canvas.drawRect(
+                Rect.fromLTRB(curX - r, macdY, curX + r, zeroy),
+                chartPaint
+                  ..color = color ?? this.chartColors.upColor
+                  ..style =
+                      isStroke ? PaintingStyle.stroke : PaintingStyle.fill);
+          } else {
+            canvas.drawRect(
+                Rect.fromLTRB(curX - r, zeroy, curX + r, macdY),
+                chartPaint
+                  ..style = isStroke ? PaintingStyle.stroke : PaintingStyle.fill
+                  ..color = color ?? this.chartColors.upColor);
+          }
         }
       }
     }

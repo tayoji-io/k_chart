@@ -100,6 +100,9 @@ class ChartStyle {
   //蜡烛宽度
   double candleWidth = 8.5;
 
+  //线的宽度
+  double lineWidth = 0.5;
+
   //蜡烛中间线的宽度
   double candleLineWidth = 1.5;
 

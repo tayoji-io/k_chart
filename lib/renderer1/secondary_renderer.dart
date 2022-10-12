@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
   final ChartStyle chartStyle;
   final ChartColors chartColors;
   final int plotIndex;
+  double scaleX;
 
   SecondaryRenderer(
       Rect mainRect,
@@ -21,7 +23,8 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
       int fixedLength,
       this.chartStyle,
       this.chartColors,
-      this.plotIndex)
+      this.plotIndex,
+      this.scaleX)
       : super(
           chartRect: mainRect,
           maxValue: maxValue,
@@ -45,7 +48,7 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
         final plot = cur.plot;
         if (plot is IndicatorLinePlot) {
           drawLine(last.value, cur.value, canvas, lastX, curX,
-              this.chartColors.plotColors[i]);
+              this.chartColors.plotColors[i], chartStyle.lineWidth);
         } else if (plot is IndicatorBarPlot) {
           final cValue = cur.value;
           final lValue = last.value;
@@ -95,9 +98,14 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
               lValue: lValue,
               cValue: cValue);
           double y = getY(cValue);
-          canvas.drawCircle(
-              Offset(curX, y),
-              chartStyle.circleRadius,
+          print('maxValue $maxValue minValue $minValue');
+
+          final width = chartStyle.circleRadius * 2;
+          final height = chartStyle.circleRadius * 2 * scaleX;
+
+          canvas.drawOval(
+              Rect.fromCenter(
+                  center: Offset(curX, y), width: width, height: height),
               chartPaint
                 ..style = PaintingStyle.stroke
                 ..strokeWidth = 0.5
@@ -112,21 +120,23 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
     final plots = data.secondaryPlot[plotIndex];
     List<TextSpan> children = [
       TextSpan(
-          text: "${plots.name} ${plots.calcParams.map((e) => e.toString())}   ",
+          text: "${plots.name}${plots.calcParams.map((e) => e.toString())}   ",
           style: getTextStyle(this.chartColors.defaultTextColor))
     ];
     for (var i = 0; i < plots.plotPoints.length; i++) {
       final plot = plots.plotPoints[i];
 
       children.add(TextSpan(
-          text: "${plot.plot.title} ${format(plot.value)}   ",
+          text: "${plot.plot.title}${format(plot.value)}   ",
           style: getTextStyle(this.chartColors.plotColors[i])));
     }
     TextPainter tp = TextPainter(
         text: TextSpan(children: children), textDirection: TextDirection.ltr);
-    tp.layout();
+    tp.layout(maxWidth: chartRect.width - (verticalTextWidth ?? 0) - 5);
     tp.paint(canvas, Offset(x, chartRect.top - topPadding));
   }
+
+  double? verticalTextWidth;
 
   @override
   void drawVerticalText(canvas, textStyle, int gridRows) {
@@ -134,6 +144,7 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
         text: TextSpan(text: "${format(maxValue)}", style: textStyle),
         textDirection: TextDirection.ltr);
     maxTp.layout();
+
     TextPainter minTp = TextPainter(
         text: TextSpan(text: "${format(minValue)}", style: textStyle),
         textDirection: TextDirection.ltr);
@@ -143,11 +154,12 @@ class SecondaryRenderer extends BaseChartRenderer<KChartEntity> {
         Offset(chartRect.width - maxTp.width, chartRect.top - topPadding));
     minTp.paint(canvas,
         Offset(chartRect.width - minTp.width, chartRect.bottom - minTp.height));
+
+    verticalTextWidth = max(maxTp.size.width, minTp.size.width);
   }
 
   @override
   void drawGrid(Canvas canvas, int gridRows, int gridColumns) {
-    // print("s------drawGrid");
     canvas.drawLine(Offset(0, chartRect.top),
         Offset(chartRect.width, chartRect.top), gridPaint);
     canvas.drawLine(Offset(0, chartRect.bottom),

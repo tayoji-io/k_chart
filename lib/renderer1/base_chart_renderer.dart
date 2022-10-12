@@ -65,18 +65,22 @@ abstract class BaseChartRenderer<T> {
       Canvas canvas);
 
   void drawLine(double? lastPrice, double? curPrice, Canvas canvas,
-      double lastX, double curX, Color color) {
+      double lastX, double curX, Color color,
+      [double lineWidth = 0.5]) {
     if (lastPrice == null || curPrice == null) {
       return;
     }
     //("lasePrice==" + lastPrice.toString() + "==curPrice==" + curPrice.toString());
     double lastY = getY(lastPrice);
     double curY = getY(curPrice);
-
     // print('$this $curY  ${lastPrice} ${this.maxValue} ${this.minValue}');
     //print("lastX-----==" + lastX.toString() + "==lastY==" + lastY.toString() + "==curX==" + curX.toString() + "==curY==" + curY.toString());
     canvas.drawLine(
-        Offset(lastX, lastY), Offset(curX, curY), chartPaint..color = color);
+        Offset(lastX, lastY),
+        Offset(curX, curY),
+        chartPaint
+          ..color = color
+          ..strokeWidth = lineWidth);
   }
 
   TextStyle getTextStyle(Color color) {
