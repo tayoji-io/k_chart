@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_qjs: ^0.3.7
+  # flutter_qjs: ^0.3.7
 
 dev_dependencies:
   flutter_test:

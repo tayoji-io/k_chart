@@ -3,12 +3,11 @@ import 'dart:convert';
 import 'package:example/technicalindicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_qjs/flutter_qjs.dart';
+// import 'package:flutter_qjs/flutter_qjs.dart';
 import 'package:http/http.dart' as http;
 import 'package:k_chart/chart_translations.dart';
 import 'package:k_chart/entity/k_chart_entity.dart';
 import 'package:k_chart/flutter_k_chart.dart';
-import 'package:k_chart/technical_indicator/indicator_plot.dart';
 
 void main() => runApp(MyApp());
 
@@ -317,76 +316,76 @@ class KJsonIndicator extends TechnicalIndicator {
   Future<List<TechnicalIndicatorPlotPoints>> calcTechnicalIndicator(
       List<KChartEntity> dataList) async {
     try {
-      final engine = IsolateQjs(
-        stackSize: 1024 * 1024, // change stack size here.
-        moduleHandler: (a) async {
-          return js;
-        },
-      );
-      name = await engine.evaluate('''
-import("hello").then(({default: greet}) => greet.name)
-''');
-      shortName = await engine.evaluate('''
-import("hello").then(({default: greet}) => greet.shortName)
-''');
-      calcParams = ((await engine.evaluate('''
-import("hello").then(({default: greet}) => greet.calcParams)
-''')) as List).map((e) => e as num).toList();
+//       final engine = IsolateQjs(
+//         stackSize: 1024 * 1024, // change stack size here.
+//         moduleHandler: (a) async {
+//           return js;
+//         },
+//       );
+//       name = await engine.evaluate('''
+// import("hello").then(({default: greet}) => greet.name)
+// ''');
+//       shortName = await engine.evaluate('''
+// import("hello").then(({default: greet}) => greet.shortName)
+// ''');
+//       calcParams = ((await engine.evaluate('''
+// import("hello").then(({default: greet}) => greet.calcParams)
+// ''')) as List).map((e) => e as num).toList();
 
-      plots = ((await engine.evaluate('''
-import("hello").then(({default: greet}) => greet.plots)
-''')) as List)
-          .map((e) {
-            final d = e as Map;
-            final type = d['type'] as String;
-            final key = e['key'];
-            final title = e['title'];
-            final color = e['color'];
-            final stroke = e['stroke'];
+//       plots = ((await engine.evaluate('''
+// import("hello").then(({default: greet}) => greet.plots)
+// ''')) as List)
+//           .map((e) {
+//             final d = e as Map;
+//             final type = d['type'] as String;
+//             final key = e['key'];
+//             final title = e['title'];
+//             final color = e['color'];
+//             final stroke = e['stroke'];
 
-            switch (type) {
-              case "line":
-                return IndicatorLinePlot.create(key: key, title: title);
-              case "bar":
-                return IndicatorBarPlot.create(
-                    indicatorColor: indicatorColors[color],
-                    indicatorBarStroke: indicatorBarStrokes[stroke],
-                    key: key,
-                    title: title,
-                    baseValue: d["baseValue"] ?? 0);
-              case "circle":
-                return IndicatorCirclePlot.create(
-                  key: key,
-                  title: title,
-                  indicatorColor: indicatorColors[color],
-                );
-            }
-            return null;
-          })
-          .where((element) => element != null)
-          .map((e) => e!)
-          .toList();
+//             switch (type) {
+//               case "line":
+//                 return IndicatorLinePlot.create(key: key, title: title);
+//               case "bar":
+//                 return IndicatorBarPlot.create(
+//                     indicatorColor: indicatorColors[color],
+//                     indicatorBarStroke: indicatorBarStrokes[stroke],
+//                     key: key,
+//                     title: title,
+//                     baseValue: d["baseValue"] ?? 0);
+//               case "circle":
+//                 return IndicatorCirclePlot.create(
+//                   key: key,
+//                   title: title,
+//                   indicatorColor: indicatorColors[color],
+//                 );
+//             }
+//             return null;
+//           })
+//           .where((element) => element != null)
+//           .map((e) => e!)
+//           .toList();
 
-      final points = ((await engine.evaluate('''
-import("hello").then(({default: greet}) => greet.calcTechnicalIndicator(${json.encode(dataList.map((e) => e.toJson()).toList())},{
-  params:${calcParams},
-  plots: ${json.encode(plots.map((e) => e.toJson()).toList())}
-}))
-''')) as List).map((e) {
-        var d = e as Map;
-        return TechnicalIndicatorPlotPoints(
-            name,
-            calcParams,
-            plots.map((e) {
-              final v = d[e.key];
-              if (v != null && v is num) {
-                return IndicatorPlotPoint(plot: e, value: v.toDouble());
-              }
-              return IndicatorPlotPoint(plot: e);
-            }).toList());
-      }).toList();
+//       final points = ((await engine.evaluate('''
+// import("hello").then(({default: greet}) => greet.calcTechnicalIndicator(${json.encode(dataList.map((e) => e.toJson()).toList())},{
+//   params:${calcParams},
+//   plots: ${json.encode(plots.map((e) => e.toJson()).toList())}
+// }))
+// ''')) as List).map((e) {
+//         var d = e as Map;
+//         return TechnicalIndicatorPlotPoints(
+//             name,
+//             calcParams,
+//             plots.map((e) {
+//               final v = d[e.key];
+//               if (v != null && v is num) {
+//                 return IndicatorPlotPoint(plot: e, value: v.toDouble());
+//               }
+//               return IndicatorPlotPoint(plot: e);
+//             }).toList());
+//       }).toList();
 
-      return points;
+      // return points;
     } catch (e) {
       print('---e-----$e $name');
     }
