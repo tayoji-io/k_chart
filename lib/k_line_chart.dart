@@ -11,6 +11,7 @@ import 'entity/info_window_entity.dart';
 import 'renderer1/chart_painter.dart';
 import 'renderer1/main_renderer.dart';
 import 'utils/date_format_util.dart';
+import 'dart:io';
 
 enum MainState { MA, BOLL, NONE }
 
@@ -115,6 +116,12 @@ class _KChartWidgetState extends State<KLineChart>
   bool waitingForOtherPairofCords = false;
   bool enableCordRecord = false;
 
+  Timer? timer;
+
+  Offset _lastOffset = Offset(0, 0);
+  double dx = 0;
+  double dy = 0;
+
   double getMinScrollX() {
     return mScaleX;
   }
@@ -137,6 +144,8 @@ class _KChartWidgetState extends State<KLineChart>
   void dispose() {
     mInfoWindowStream?.close();
     _controller?.dispose();
+    timer?.cancel();
+    timer = null;
     super.dispose();
   }
 
@@ -179,6 +188,11 @@ class _KChartWidgetState extends State<KLineChart>
         mWidth = constraints.maxWidth;
 
         return GestureDetector(
+          // gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>[
+          //   Factory<ScaleGestureRecognizer>(() => ScaleGestureRecognizer()),
+          //   Factory<HorizontalDragGestureRecognizer>(
+          //       () => HorizontalDragGestureRecognizer()),
+          // ],
           onTapUp: (details) {
             if (!widget.isTrendLine &&
                 widget.onSecondaryTap != null &&
@@ -213,34 +227,82 @@ class _KChartWidgetState extends State<KLineChart>
               notifyChanged();
             }
           },
-          onHorizontalDragDown: (details) {
-            isOnTap = false;
-            _stopAnimation();
-            _onDragChanged(true);
-          },
-          onHorizontalDragUpdate: (details) {
-            if (isScale || isLongPress) return;
-            mScrollX = ((details.primaryDelta ?? 0) / mScaleX + mScrollX)
-                .clamp(0.0, ChartPainter.maxScrollX)
-                .toDouble();
-            notifyChanged();
-          },
-          onHorizontalDragEnd: (DragEndDetails details) {
-            var velocity = details.velocity.pixelsPerSecond.dx;
-            _onFling(velocity);
-          },
-          onHorizontalDragCancel: () => _onDragChanged(false),
-          onScaleStart: (_) {
-            isScale = true;
+          onHorizontalDragDown: Platform.isIOS
+              ? (details) {
+                  isOnTap = false;
+                  _stopAnimation();
+                  _onDragChanged(true);
+                }
+              : null,
+          onHorizontalDragUpdate: Platform.isIOS
+              ? (details) {
+                  if (isScale || isLongPress) return;
+                  mScrollX = ((details.primaryDelta ?? 0) / mScaleX + mScrollX)
+                      .clamp(0.0, ChartPainter.maxScrollX)
+                      .toDouble();
+                  notifyChanged();
+                }
+              : null,
+          onHorizontalDragEnd: Platform.isIOS
+              ? (DragEndDetails details) {
+                  var velocity = details.velocity.pixelsPerSecond.dx;
+                  _onFling(velocity);
+                  notifyChanged();
+                }
+              : null,
+          onHorizontalDragCancel:
+              Platform.isIOS ? () => _onDragChanged(false) : null,
+          onScaleStart: (d) {
+            if (!Platform.isIOS) {
+              if (isDrag) {
+                isOnTap = false;
+                _stopAnimation();
+                _onDragChanged(true);
+                _lastOffset = d.focalPoint;
+              } else {
+                isScale = true;
+              }
+            } else {
+              isScale = true;
+            }
           },
           onScaleUpdate: (details) {
-            if (isDrag || isLongPress) return;
-            mScaleX = (_lastScale * details.scale).clamp(0.5, 2.2);
-            notifyChanged();
+            if (!Platform.isIOS) {
+              if (details.scale == 1) {
+                isDrag = true;
+                dx += (details.focalPoint.dx - _lastOffset.dx);
+                dy += (details.focalPoint.dy - _lastOffset.dy);
+                mScrollX = ((details.focalPointDelta.dx) / mScaleX + mScrollX)
+                    .clamp(0.0, ChartPainter.maxScrollX)
+                    .toDouble();
+                _lastOffset = details.focalPoint;
+                notifyChanged();
+              } else {
+                isScale = true;
+                isDrag = false;
+                mScaleX = (_lastScale * details.scale).clamp(0.5, 2.2);
+                notifyChanged();
+              }
+            } else {
+              if (isDrag || isLongPress) return;
+              mScaleX = (_lastScale * details.scale).clamp(0.5, 2.2);
+              notifyChanged();
+            }
           },
-          onScaleEnd: (_) {
-            isScale = false;
-            _lastScale = mScaleX;
+          onScaleEnd: (details) {
+            if (!Platform.isIOS) {
+              if (isDrag) {
+                var velocity = details.velocity.pixelsPerSecond.dx;
+                _onFling(velocity);
+                notifyChanged();
+              } else {
+                isScale = false;
+                _lastScale = mScaleX;
+              }
+            } else {
+              isScale = false;
+              _lastScale = mScaleX;
+            }
           },
           onLongPressStart: (details) {
             isOnTap = false;
